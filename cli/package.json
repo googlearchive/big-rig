@@ -2,10 +2,11 @@
   "name": "big-rig-cli",
   "version": "1.0.0",
   "description": "A CLI for parsing trace (timeline) files from Chrome.",
-  "main": "index.js",
+  "main": "bigrig.js",
   "dependencies": {
     "cli-color": "^1.1.0",
-    "mkdirp": "^0.5.1"
+    "mkdirp": "^0.5.1",
+    "yargs": "^3.29.0"
   },
   "devDependencies": {},
   "scripts": {
