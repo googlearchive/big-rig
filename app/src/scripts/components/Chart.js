@@ -63,17 +63,28 @@ export default class Chart {
     this.xAxisOptions = this.element.querySelector('[for="x-axis"]');
     this.yAxisOptions = this.element.querySelector('[for="y-axis"]');
 
-    this.detailsTitle = this.element.querySelector('.render-details__title');
-    this.detailsSubTitle = this.element.querySelector('.render-details__subtitle');
-    this.detailsFPS = this.element.querySelector('.render-details__fps');
-    this.detailsSpeedIndex = this.element.querySelector('.render-details__speed-index');
-    this.detailsDuration = this.element.querySelector('.render-details__duration');
-    this.detailsParseHTML = this.element.querySelector('.render-details__parse-html');
-    this.detailsJavaScript = this.element.querySelector('.render-details__javascript');
-    this.detailsStyles = this.element.querySelector('.render-details__styles');
-    this.detailsLayout = this.element.querySelector('.render-details__layout');
-    this.detailsPaint = this.element.querySelector('.render-details__paint');
-    this.detailsComposite = this.element.querySelector('.render-details__composite');
+    this.detailsTitle =
+        this.element.querySelector('.render-details__title');
+    this.detailsSubTitle =
+        this.element.querySelector('.render-details__subtitle');
+    this.detailsFPS =
+        this.element.querySelector('.render-details__fps');
+    this.detailsSpeedIndex =
+        this.element.querySelector('.render-details__speed-index');
+    this.detailsDuration =
+        this.element.querySelector('.render-details__duration');
+    this.detailsParseHTML =
+        this.element.querySelector('.render-details__parse-html');
+    this.detailsJavaScript =
+        this.element.querySelector('.render-details__javascript');
+    this.detailsStyles =
+        this.element.querySelector('.render-details__styles');
+    this.detailsLayout =
+        this.element.querySelector('.render-details__layout');
+    this.detailsPaint =
+        this.element.querySelector('.render-details__paint');
+    this.detailsComposite =
+        this.element.querySelector('.render-details__composite');
 
     this.wptDetailsButton = this.element.querySelector('.wpt-results-button');
     this.commitButton = this.element.querySelector('.commit-button');
@@ -373,6 +384,7 @@ export default class Chart {
 
   waitForDimensions () {
 
+    /*eslint-disable*/
     return new Promise((resolve, reject) => {
       this.width = this.canvas.parentElement.offsetWidth;
       this.height = this.canvas.parentElement.offsetHeight;
@@ -384,7 +396,8 @@ export default class Chart {
 
       this.onResize();
       resolve();
-    })
+    });
+    /*eslint-enable*/
   }
 
   onResize () {
@@ -656,9 +669,11 @@ export default class Chart {
             labelSuffix = 'fps';
 
           let label =
-              this.intlNumber.format(Math.round(this.axes.rangeYUpper - l * stepY)) +
+              this.intlNumber.format(
+                  Math.round(this.axes.rangeYUpper - l * stepY)) +
               labelSuffix;
-          let x = this.constants.LABEL_PADDING_X - this.constants.AXIS_PADDING_X;
+          let x = this.constants.LABEL_PADDING_X -
+              this.constants.AXIS_PADDING_X;
           let y = this.constants.AXIS_PADDING_Y +
               (l / numberOfLabelsY * labelHeightUpper);
           this.ctx.fillText(label, x, y);
@@ -688,7 +703,8 @@ export default class Chart {
               this.intlNumber.format(
                   Math.round(this.axes.rangeYLower - l * stepY)
               ) + labelSuffix;
-          let x = this.constants.LABEL_PADDING_X - this.constants.AXIS_PADDING_X;
+          let x = this.constants.LABEL_PADDING_X -
+              this.constants.AXIS_PADDING_X;
           let y = this.constants.AXIS_PADDING_Y +
 
               // And add this label's offset.
@@ -706,7 +722,6 @@ export default class Chart {
     {
       let labelWidth = chartOuterWidth - this.constants.AXIS_PADDING_X * 2;
       let lastLabelX = Number.NEGATIVE_INFINITY;
-      let lastLabelOffsetY = 0;
 
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'top';
@@ -726,7 +741,6 @@ export default class Chart {
               ((entry.time - this.axes.minX) / this.axes.rangeX) * labelWidth;
         }
 
-        let labelOffsetY = 0;
         let y = chartOuterHeight + this.constants.AXIS_PADDING_Y;
         let width = this.ctx.measureText(label).width;
 
@@ -755,7 +769,6 @@ export default class Chart {
         this.ctx.fillText(label, x, y);
 
         lastLabelX = x;
-        lastLabelOffsetY = labelOffsetY;
 
       })
     }
@@ -840,7 +853,7 @@ export default class Chart {
           // Reset the base value for this run.
           this.resetBaseYValues();
 
-          renderOrder.forEach( (renderKey, renderKeyIndex) => {
+          renderOrder.forEach( (renderKey) => {
 
             let renderBlock = this.renderData[renderKey];
             let isRaster = (renderKey === 'raster');
@@ -945,7 +958,8 @@ export default class Chart {
             break;
         }
 
-        let thresholdY = Math.round((threshold / this.axes.maxYUpper) * chartHeightUpper);
+        let thresholdY = Math.round((threshold / this.axes.maxYUpper) *
+            chartHeightUpper);
 
         this.ctx.save();
         {
@@ -1083,8 +1097,10 @@ export default class Chart {
           let xStart = 0;
           let xEnd = 0;
 
-          let yStart = Math.round((dclStart / this.axes.maxYUpper) * chartHeightUpper);
-          let yEnd = Math.round((dclEnd / this.axes.maxYUpper) * chartHeightUpper);
+          let yStart = Math.round((dclStart / this.axes.maxYUpper) *
+              chartHeightUpper);
+          let yEnd = Math.round((dclEnd / this.axes.maxYUpper) *
+              chartHeightUpper);
 
           // Relative values
           if (this.xAxis === 0) {
@@ -1150,16 +1166,6 @@ export default class Chart {
     let comparisonPaint = comparisonData.paint + (comparisonData.raster || 0);
     let dataPaint = data.paint + (data.raster || 0);
 
-    // let speedIndex = data.speedIndex - comparisonData.speedIndex;
-    // let duration = data.duration - comparisonData.duration;
-    // let fps = data.fps - comparisonData.fps;
-    // let parseHTML = data.parseHTML - comparisonData.parseHTML;
-    // let javaScript = data.javaScript - comparisonData.javaScript;
-    // let styles = data.styles - comparisonData.styles;
-    // let layout = data.layout - comparisonData.layout;
-    // let paint = data.paint - comparisonData.paint;
-    // let composite = data.composite - comparisonData.composite;
-
     let speedIndex = comparisonData.speedIndex - data.speedIndex;
     let duration = comparisonData.duration - data.duration;
     let fps = comparisonData.fps - data.fps;
@@ -1188,7 +1194,7 @@ export default class Chart {
     if (this.detailsSpeedIndex) {
 
       isPositive = speedIndex > 0;
-      prefix = (isPositive || (speedIndex == 0) ? '+' : '')
+      prefix = (isPositive || (speedIndex == 0) ? '+' : '');
       comparisonClass = (isPositive ? 'positive' : 'negative');
 
       this.detailsSpeedIndex.textContent =
@@ -1198,37 +1204,37 @@ export default class Chart {
 
     if (this.detailsFPS) {
       isPositive = fps > 0;
-      prefix = (isPositive || (fps == 0) ? '+' : '')
-      comparisonClass = (isPositive ? 'positive' : 'negative');
+      prefix = (isPositive || (fps == 0) ? '+' : '');
+      comparisonClass = (isPositive ? 'negative' : 'positive');
 
       this.detailsFPS.textContent =
-          prefix + this.intlNumber.format(duration) + 'ms';
+          prefix + this.intlNumber.format(fps);
       this.detailsFPS.classList.add(comparisonClass);
     }
 
     isPositive = parseHTML > 0;
-    prefix = (isPositive || (parseHTML == 0) ? '+' : '')
+    prefix = (isPositive || (parseHTML == 0) ? '+' : '');
     comparisonClass = (isPositive ? 'positive' : 'negative');
     this.detailsParseHTML.textContent =
         prefix + this.intlNumber.format(parseHTML) + 'ms';
     this.detailsParseHTML.classList.add(comparisonClass);
 
     isPositive = javaScript > 0;
-    prefix = (isPositive || (javaScript == 0) ? '+' : '')
+    prefix = (isPositive || (javaScript == 0) ? '+' : '');
     comparisonClass = (isPositive ? 'positive' : 'negative');
     this.detailsJavaScript.textContent =
         prefix + this.intlNumber.format(javaScript) + 'ms';
     this.detailsJavaScript.classList.add(comparisonClass);
 
     isPositive = styles > 0;
-    prefix = (isPositive || (styles == 0) ? '+' : '')
+    prefix = (isPositive || (styles == 0) ? '+' : '');
     comparisonClass = (isPositive ? 'positive' : 'negative');
     this.detailsStyles.textContent =
         prefix + this.intlNumber.format(styles) + 'ms';
     this.detailsStyles.classList.add(comparisonClass);
 
     isPositive = layout > 0;
-    prefix = (isPositive || (layout == 0) ? '+' : '')
+    prefix = (isPositive || (layout == 0) ? '+' : '');
     comparisonClass = (isPositive ? 'positive' : 'negative');
     this.detailsLayout.textContent =
         prefix + this.intlNumber.format(layout) + 'ms';
@@ -1344,5 +1350,3 @@ export default class Chart {
     this.detailsComposite.classList.remove('negative');
   }
 }
-
-
