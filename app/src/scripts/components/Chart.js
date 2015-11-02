@@ -41,6 +41,7 @@ export default class Chart {
     this.labelMode = this.constants.LABEL_RAW;
     this.wptTestResultID = null;
     this.commitURL = null;
+    this.javaScriptExecution = [];
 
     this.screenX = 0;
     this.mouseX = -1;
@@ -85,6 +86,9 @@ export default class Chart {
         this.element.querySelector('.render-details__paint');
     this.detailsComposite =
         this.element.querySelector('.render-details__composite');
+
+    this.extendedInfo =
+        this.element.querySelector('#extended-panel .render-details__data');
 
     this.wptDetailsButton = this.element.querySelector('.wpt-results-button');
     this.commitButton = this.element.querySelector('.commit-button');
@@ -196,6 +200,29 @@ export default class Chart {
 
   }
 
+  setJavaScriptExecutionTime () {
+
+    let currentDataset = this.data.details[this.selectedIndex];
+
+    if (typeof currentDataset.extendedInfo == 'undefined')
+      return;
+
+    let extendedInfo = currentDataset.extendedInfo;
+
+    this.javaScriptExecution = [];
+
+    for (var x = 0; x < extendedInfo.length; x++) {
+      if (extendedInfo[x].type === 'JavaScript') {
+        this.javaScriptExecution.push(extendedInfo[x]);
+      }
+    }
+
+    this.javaScriptExecution.sort(function(a,b) {
+      return b.value - a.value;
+    });
+
+  }
+
   onCommitButtonClick () {
 
     if (this.commitURL === null)
@@ -227,6 +254,7 @@ export default class Chart {
     this.selectedIndex = this.compareIndex;
     this.setWPTTestResultID();
     this.setCommitURL();
+    this.setJavaScriptExecutionTime();
 
     // Update the delete button.
     this.deleteButton.dataset.actionDetailKey =
@@ -360,8 +388,11 @@ export default class Chart {
 
           this.selectedIndex = this.data.details.length - 1;
 
+          console.log(this.data.details[this.selectedIndex]);
+
           this.setWPTTestResultID();
           this.setCommitURL();
+          this.setJavaScriptExecutionTime();
 
           this.xAxisButton.disabled = this.yAxisButton.disabled = false;
           this.xAxis = this.data.xAxis;
@@ -559,10 +590,6 @@ export default class Chart {
 
     this.data.details.forEach((entry) => {
 
-      // If we are using relative values group paint with raster.
-      if (this.yAxis === 0 && entry.raster)
-        entry.paint += entry.raster;
-
       this.renderData.parseHTML.values.push(entry.parseHTML);
       this.renderData.javaScript.values.push(entry.javaScript);
       this.renderData.styles.values.push(entry.styles);
@@ -636,7 +663,6 @@ export default class Chart {
 
     let selectedMarkerX = 0;
     let compareMarkerX = 0;
-    let lastSelectedIndex = this.selectedIndex;
     let lastCompareIndex = this.compareIndex;
 
     // Total Area
@@ -1296,6 +1322,8 @@ export default class Chart {
     if (typeof data.raster !== 'undefined')
       paintTime += data.raster;
 
+    console.log(data.paint, data.raster);
+
     this.detailsParseHTML.textContent =
         this.intlNumber.format(data.parseHTML) + 'ms';
     this.detailsJavaScript.textContent =
@@ -1318,6 +1346,22 @@ export default class Chart {
       this.commitButton.classList.add('commit-button--visible');
     else
       this.commitButton.classList.remove('commit-button--visible');
+
+    let extendedInfoHTML = '';
+    for (var j = 0; j < this.javaScriptExecution.length; j++) {
+
+      let entry = this.javaScriptExecution[j];
+      extendedInfoHTML +=
+        `<tr>
+          <th>${entry.name}</th>
+          <td>${this.intlNumber.format(entry.value)}ms</td>
+        </tr>`
+    }
+
+    console.log(this.javaScriptExecution);
+    console.log(extendedInfoHTML);
+
+    this.extendedInfo.innerHTML = extendedInfoHTML;
   }
 
   removePositiveAndNegativeClasses () {
