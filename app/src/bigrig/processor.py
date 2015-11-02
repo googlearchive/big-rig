@@ -390,7 +390,7 @@ class TraceProcessor():
       threads, trace_info, extended_info):
 
     if (type(labels) is not list):
-      return 0
+      return []
 
     results = {}
     first_paint_time = None
