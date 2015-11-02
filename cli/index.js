@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 var clc = require('cli-color');
 var fs = require('fs');
 var processor = require('./processor');
@@ -32,17 +33,17 @@ require('./tracing-config.js');
 // Find which file needs parsing.
 if (process.argv.length < 3) {
   console.error('Trace file needs to be passed.');
-  return;
+  process.exit(1);
 }
 
 path = process.argv[2];
 
 // Check the file exists.
 try {
-  fileStats = fs.statSync(path);
+  fs.statSync(path);
 } catch (e) {
   console.error('Trace file could not be found.');
-  return;
+  process.exit(1);
 }
 
 function prettyPrint (result, indent) {

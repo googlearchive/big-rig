@@ -17,7 +17,7 @@
 
 if (process.argv.length < 3) {
   console.error('Trace file output location needs to be passed.');
-  return;
+  process.exit(1);
 }
 
 path = process.argv[2];
@@ -35,7 +35,7 @@ try {
 }
 
 var URL = 'http://example.com';
-var SELECTOR_FOR_LOADED = '.element-that-exists-only-when-the-page-has-loaded';
+var SELECTOR_FOR_LOADED = '.selector-for-loaded-page';
 
 var fs = require('fs');
 var scrollTest = require('./tests/scroll');
@@ -61,7 +61,7 @@ var steps = [
 ];
 
 runner.flow(steps);
-runner.getTrace(browser).then((traceData) => {
+runner.getTrace(browser).then(function(traceData) {
   fs.writeFile(path, traceData, 'utf8');
   browser.quit();
 });

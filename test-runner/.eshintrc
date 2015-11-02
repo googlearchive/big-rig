@@ -1,0 +1,15 @@
+{
+  "root": true,
+  "env": {
+    "node": true
+  },
+
+  "parser": "babel-eslint",
+  "extends": "eslint:recommended",
+  "rules": {
+    "quotes": [2, "single"],
+    "eol-last": [0],
+    "no-console": [0],
+    "max-len": [2, 80, 2]
+  }
+}

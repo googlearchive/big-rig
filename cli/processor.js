@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+/* global tr */
 var URL = require('url');
 
 function analyzeTrace (contents) {
@@ -23,6 +24,7 @@ function analyzeTrace (contents) {
     traceEvents: JSON.parse(contents)
   })];
 
+  var results = null;
   var model = convertEventsToModel(events);
   var processes = model.getAllProcesses();
   var trace_process = null;
@@ -38,9 +40,9 @@ function analyzeTrace (contents) {
   }
 
   if (summarizable.length == 0)
-    throw "Zero processes found";
+    throw 'Zero processes found';
   if (summarizable.length > 1)
-    throw "Multiple processes found";
+    throw 'Multiple processes found';
 
   trace_process = summarizable.pop();
   results = processTrace(model, trace_process);
@@ -75,7 +77,7 @@ function processTrace (model, trace_process) {
   var rendererThread = getThreadByName(trace_process, 'CrRendererMain');
 
   if (!rendererThread)
-    throw "Can't find renderer thread";
+    throw 'Can\'t find renderer thread';
 
   var timeRanges = getTimeRanges(rendererThread);
 
@@ -92,6 +94,9 @@ function processTrace (model, trace_process) {
 
 function createActionDetailsFromTrace (timeRanges, threads) {
 
+  /* eslint-disable */
+  // Disable linting because eslint can't differentiate JSON from non-JSON
+  // @see https://github.com/eslint/eslint/issues/3484
   var result = {
     "Duration": timeRanges[0].duration,
     // "Frames": 0,
@@ -110,11 +115,12 @@ function createActionDetailsFromTrace (timeRanges, threads) {
     }
   };
 
-  threads.forEach(function(thread, index) {
+  /* eslint-enable */
+
+  threads.forEach(function(thread) {
 
     var slices = thread.sliceGroup.topLevelSlices;
     var slice = null;
-    var duration = 0;
 
     for (var s = 0 ; s < slices.length; s++) {
       slice = slices[s];
@@ -230,7 +236,6 @@ function getThreadByName (trace_process, name) {
 
   var threadKeys = Object.keys(trace_process.threads);
   var threadKey = null;
-  var threads = [];
   var thread = null;
 
   for (var t = 0; t < threadKeys.length; t++) {

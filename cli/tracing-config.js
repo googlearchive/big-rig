@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* global tr */
+
 // Sets up a few stubs for tracing, particularly for the HTML Elements it
 // expects to exist, which won't because this is running in Node.
 tr.isHeadless = false;
