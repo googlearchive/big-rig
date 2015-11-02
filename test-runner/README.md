@@ -11,13 +11,14 @@ able to use the test runner:
 
 1. `cd test-runner`
 1. `npm install`
+1. `chmod +x ./runner.js`
 
 ## Usage
 
-To run the test run node against `index.js` and provide an output path. **You will need to modify the URL (and the CSS selector used to determine that the page has loaded) before running the test.**
+To run the test run node against `runner.js` and provide an output path. **You will need to modify the URL (and the CSS selector used to determine that the page has loaded) before running the test.**
 
 ```
-node index.js ~/Desktop/trace.json
+./runner.js --trace=/path/to/trace.json
 ```
 
 On run you should see Chrome start, the test run, and, finally, the page close. There should be a trace file written that you can import into the Big Rig web app, or provide to the CLI.

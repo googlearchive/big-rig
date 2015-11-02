@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -15,81 +17,56 @@
  * limitations under the License.
  */
 
-/*
- * This approach is very much based on Sam Saccone's excellent memory leak
- * detector: Drool.
- * @see https://github.com/samccone/drool
- */
-var webdriver = require('selenium-webdriver');
-var chrome = require('selenium-webdriver/chrome');
-var controlFlow = webdriver.promise.controlFlow();
+var argv = require('yargs').argv;
+var fs = require('fs');
 
-function start (opts) {
-  opts = opts || {};
-
-  var options = new chrome.Options();
-  var traceCategories = [
-    'blink.console',
-    'devtools.timeline',
-    'toplevel',
-    'disabled-by-default-devtools.timeline',
-    'disabled-by-default-devtools.timeline.frame'
-  ];
-
-  if (opts.android)
-    options = options.androidChrome();
-
-  // Add on GPU benchmarking.
-  options.addArguments('--enable-gpu-benchmarking');
-
-  // Run without a sandbox.
-  options.addArguments('no-sandbox');
-
-  // Set up that we want to get trace data.
-  options.setLoggingPrefs({ performance: 'ALL' });
-  options.setPerfLoggingPrefs({
-    'traceCategories': traceCategories.join(',')
-  })
-
-  return new webdriver.Builder()
-      .forBrowser('chrome')
-      .setChromeOptions(options)
-      .build();
+if (typeof argv.trace !== 'string') {
+  console.error('Trace file output location needs to be passed.');
+  process.exit(1);
 }
 
-function flow (steps) {
-  steps.forEach(function(step) {
-    controlFlow.execute(step);
-  });
+path = argv.trace;
+
+// Check if the file exists.
+try {
+  fileStats = fs.statSync(path);
+
+  if (fileStats)
+    console.warn('Warning: Trace file already exists.');
+
+} catch (e) {
+  // No worries here... If the file doesn't exist we can
+  // ignore the warning and go.
 }
 
-function getTrace(browser) {
-  return (new webdriver.WebDriver.Logs(browser))
-    .get('performance')
-    .then(function(logs) {
-      var trace = '';
-      var processedLog;
-      logs.forEach(function(log, index, arr) {
+var URL = 'http://example.com';
+var SELECTOR_FOR_LOADED = 'a';
 
-        // Parse the message.
-        processedLog = JSON.parse(log.message);
+var fs = require('fs');
+var scrollTest = require('./tests/scroll');
+var driver = require('./driver');
+var browser = driver.start();
+var webdriver = driver.webdriver;
 
-        // Skip any records that aren't categorized.
-        if (!processedLog.message.params.cat)
-          return;
+var steps = [
 
-        // Now append it for the trace file.
-        trace += JSON.stringify(processedLog.message.params) +
-            ((index < arr.length - 1) ? ',' : '') + '\n';
-      });
+  function start () {
+    browser.get(URL);
+  },
 
-      return '[' + trace + ']';
-    })
-}
+  function waitForPageLoad () {
+    browser.wait(function() {
+      return browser.isElementPresent(webdriver.By.css(SELECTOR_FOR_LOADED));
+    }, 10000);
+  },
 
-module.exports = {
-  start: start,
-  flow: flow,
-  webdriver: webdriver,
-  getTrace: getTrace
-};
+  function runTest () {
+    scrollTest.run(browser);
+  }
+];
+
+driver.flow(steps);
+driver.getTrace(browser).then(function(traceData) {
+  fs.writeFile(path, traceData, 'utf8');
+  browser.quit();
+});
