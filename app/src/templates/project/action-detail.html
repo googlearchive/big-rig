@@ -141,7 +141,7 @@ limitations under the License.
 
                       <table class="render-details__data">
                         {% for value in extended_info['JavaScript'] %}
-                          <tr><th>{{ value.name }}</th><td class="render-details__paint">{{ value.value }}ms</td></tr>
+                          <tr><th>{{ value.name }}</th><td class="render-details__paint">{{ '{:,.2f}'.format(value.value) }}ms</td></tr>
                         {% endfor %}
                       </table>
                     </section>

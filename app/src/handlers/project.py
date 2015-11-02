@@ -316,19 +316,27 @@ class ProjectActionDetailHandler(webapp2.RequestHandler):
 
         if v.type not in remapped_values:
           remapped_values[v.type] = []
-        remapped_values[v.type].append(v)
 
         try:
-          v.value = float(v.value)
-          v.value = '{:,.2f}'.format(value.value)
+
+          value = {
+            'name': v.name,
+            'type': v.type,
+            'value': float(v.value)
+          }
+
         except Exception, e:
-          if v.value == None:
-            v.value = '0'
+
+          if value == None:
+            value = 0.0
+
+        # print v
+        remapped_values[v.type].append(value)
 
       if 'JavaScript' in remapped_values:
         remapped_values['JavaScript'] = (
           sorted(remapped_values['JavaScript'],
-                key=lambda r: float(r.value),
+                key=lambda r: float(r['value']),
                 reverse=True)
         )
 
