@@ -1,0 +1,79 @@
+{#
+  Copyright 2015 Google Inc. All Rights Reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+#}
+
+<nav class="nav">
+
+  <div class="nav__content">
+
+    <header class="nav__header">
+      <img class="nav__gravatar" src="{{ gravatar_url }}" />
+
+      {% if user_is_admin %}
+      <div class="mdl-badge nav__admin-badge" data-badge="A"></div>
+      {% endif %}
+
+      <div class="nav__dropdown">
+        <p class="nav__user-email">{{ user_email }}</p>
+
+        <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="hdrbtn">
+          <i class="material-icons">arrow_drop_down</i>
+        </button>
+        <ul class="mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right" for="hdrbtn">
+          <li class="mdl-menu__item"><a href="{{ sign_out_url }}" class="mdl-menu__item-link">Sign out</a></li>
+        </ul>
+      </div>
+
+    </header>
+
+    <section>
+      <ul class="nav__list">
+        <li class="nav__list-item">
+          <a class="nav__list-link" href="/project/list">
+            <i class="nav__list-icon material-icons">home</i> Projects
+          </a>
+        </li>
+
+        <li class="nav__list-item">
+          <a class="nav__list-link" href="/help/">
+            <i class="nav__list-icon material-icons">help</i> Help
+          </a>
+        </li>
+
+        {% if user_is_admin %}
+
+        <li class="nav__list-item">
+          <a class="nav__list-link" href="/users/">
+            <i class="nav__list-icon material-icons">person</i> Users
+          </a>
+        </li>
+
+        {% endif %}
+
+        <!-- <li class="nav__list-item">
+          <a class="nav__list-link" href="/settings">
+            <i class="nav__list-icon material-icons">settings</i> Settings
+          </a>
+        </li> -->
+      </ul>
+    </section>
+
+    <div class="big-rig__version">
+      Version: @VERSION@
+    </div>
+  </div>
+</nav>
+
+<div class="nav__underlay"></div>

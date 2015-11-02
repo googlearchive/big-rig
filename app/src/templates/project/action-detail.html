@@ -1,0 +1,198 @@
+<!--
+
+Copyright 2015 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+
+<!doctype html>
+<html>
+  {% include "templates/_includes/head.html" %}
+<body>
+
+{% include "templates/_includes/navigation.html" %}
+{% include "templates/_includes/location.html" %}
+{% include "templates/_includes/action-detail.html" %}
+{% set last_action = actions.get() %}
+{% if last_action.extended_info %}
+  {% set extended_info = last_action.extended_info | remap_extended_info %}
+{% endif %}
+
+  <main class="main-view">
+
+    {% if not last_action %}
+      Upload a trace for this action.
+    {% else %}
+
+    <div class="actions-chart" data-url="{{ data_url }}">
+      <div class="render"></div>
+      <aside class="render-details">
+        <header class="render-details__header">
+
+          <button
+              data-action-detail-key="{{ last_action.key.integer_id() }}"
+              class="action-detail-delete mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+            <i class="material-icons">delete</i>
+          </button>
+
+          <h1 class="render-details__title">{{ last_action.date.strftime('%b %e') }}</h1>
+          <h2 class="render-details__subtitle">{{ last_action.date.strftime('%-H:%M %p') | lower }}</h2>
+        </header>
+        <section>
+
+          <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+            <div class="mdl-tabs__tab-bar">
+                <a href="#data-panel" class="mdl-tabs__tab is-active">Data</a>
+                <a href="#extended-panel" class="mdl-tabs__tab">Extended Info</a>
+            </div>
+
+            <div class="render-details__tab-container">
+              <div class="mdl-tabs__panel is-active" id="data-panel">
+
+                <table class="render-details__data">
+                  {% if action_type == 'Animation' %}
+                  <tr>
+                    <th>FPS</th>
+                    <td class="render-details__fps">{{ '{:,.2f}'.format(last_action.frames_per_second, grouping=True) }}</td>
+                  </tr>
+                  {% elif can_use_speed_index %}
+                  <tr>
+                    <th>Speed Index</th>
+                    <td class="render-details__speed-index">{{ '{:,}'.format(last_action.speed_index) }}</td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <th>Duration</th>
+                    <td class="render-details__duration">{{ '{:,.2f}'.format(last_action.duration) }}ms</td>
+                  </tr>
+                  <tr>
+                    <th class="render-details__parse-html-label">Parse HTML</th>
+                    <td class="render-details__parse-html">{{ '{:,.2f}'.format(last_action.parse_html) }}ms</td>
+                  </tr>
+                  <tr>
+                    <th class="render-details__javascript-label">JavaScript</th>
+                    <td class="render-details__javascript">{{ '{:,.2f}'.format(last_action.javascript) }}ms</td>
+                  </tr>
+                  <tr>
+                    <th class="render-details__styles-label">Styles</th>
+                    <td class="render-details__styles">{{ '{:,.2f}'.format(last_action.styles) }}ms</td>
+                  </tr>
+                  <tr>
+                    <th class="render-details__layout-label">Layout</th>
+                    <td class="render-details__layout">{{ '{:,.2f}'.format(last_action.layout) }}ms</td>
+                  </tr>
+                  <tr>
+                    <th class="render-details__paint-label">Paint</th>
+
+                    {% set total_paint = last_action.paint %}
+                    {% if last_action.raster %}
+                      {% set total_paint = (last_action.paint | round(2)) + (last_action.raster | round(2)) %}
+                    {% endif %}
+
+                    <td class="render-details__paint">{{ '{:,.2f}'.format(total_paint) }}ms</td>
+                  </tr>
+                  <tr>
+                    <th class="render-details__composite-label">Composite</th>
+                    <td class="render-details__composite">{{ '{:,.2f}'.format(last_action.composite) }}ms</td>
+                  </tr>
+                </table>
+
+                <div class="results__button-container">
+
+                  {% if extended_info and 'webpagetest-id' in extended_info %}
+                    {% set wptbuttonclass = 'wpt-results-button--visible' %}
+                  {% endif %}
+
+                  <button type="button" class="wpt-results-button {{ wptbuttonclass }} mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+                    See WebPagetest
+                  </button>
+
+                  {% if extended_info and 'commit' in extended_info %}
+                    {% set commitbuttonclass = 'commit-button--visible' %}
+                  {% endif %}
+
+                  <button type="button" class="commit-button {{ commitbuttonclass }} mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+                    See Commit
+                  </button>
+
+                </div>
+
+              </div>
+
+              <div class="mdl-tabs__panel" id="extended-panel">
+
+                {% if extended_info %}
+
+                  {% if 'JavaScript' in extended_info %}
+
+                    <section>
+                      <h1 class="extended-info__title">JavaScript</h1>
+
+                      <table class="render-details__data">
+                        {% for value in extended_info['JavaScript'] %}
+                          <tr><th>{{ value.name }}</th><td class="render-details__paint">{{ value.value }}ms</td></tr>
+                        {% endfor %}
+                      </table>
+                    </section>
+
+                  {% endif %}
+
+                {% else %}
+                  <p class="extended-info__title">
+                    There is no extended information for this record.
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </aside>
+      <div class="controls">
+        <aside class="actions-chart__control">
+          <span class="actions-chart__control-label">X-axis:</span>
+          <button disabled class="mdl-button mdl-js-button mdl-js-ripple-effect" id="x-axis">
+            <span class="current-value">-</span>
+            <i class="material-icons">arrow_drop_down</i>
+          </button>
+          <ul class="mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right" for="x-axis">
+            <li data-value="0" class="mdl-menu__item">Evenly distributed</li>
+            <li data-value="1" class="mdl-menu__item">Temporally distributed</li>
+          </ul>
+        </aside>
+
+        <aside class="actions-chart__control">
+          <span class="actions-chart__control-label">Y-axis:</span>
+          <button disabled class="mdl-button mdl-js-button mdl-js-ripple-effect" id="y-axis">
+            <span class="current-value">-</span>
+            <i class="material-icons">arrow_drop_down</i>
+          </button>
+          <ul class="mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right" for="y-axis">
+            <li data-value="0" class="mdl-menu__item">Relative values</li>
+            <li data-value="1" class="mdl-menu__item">Absolute values</li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+
+    {% endif %}
+
+  </main>
+
+  {% include "templates/_includes/toaster.html" %}
+
+  <script src="/scripts/bigrig.js"></script>
+  <script src="/scripts/action-detail.js"></script>
+</body>
+</html>

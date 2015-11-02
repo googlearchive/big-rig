@@ -1,0 +1,19 @@
+{
+  "NOTE": [
+    "Please do NOT add new dependencies into this file. Contact ",
+    "aiolos@, dtu@, or nednguyen@ on how to proceed with your change."
+  ],
+  "directory_deps": [
+    "build/android/pylib/",
+    "third_party/android_testrunner/",
+    "third_party/android_tools/sdk/platform-tools/",
+    "third_party/trace-viewer/",
+    "third_party/pexpect/",
+    "third_party/ply/",
+    "third_party/webpagereplay/",
+    "tools/telemetry/",
+    "third_party/chromite/ssh_keys/"
+  ],
+  "file_deps": [
+  ]
+}

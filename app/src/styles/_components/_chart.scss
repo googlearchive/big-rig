@@ -1,0 +1,225 @@
+/**
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.actions-chart {
+  width: 100%;
+  height: 544px;
+  background: #FFF;
+  border-radius: 2px;
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  .render {
+    flex: 1;
+    cursor: pointer;
+  }
+
+  .render-details {
+    width: 30%;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: #3F89A0;
+    border-radius: 0 2px 2px 0;
+    color: #FFF;
+  }
+
+  .render-details__header {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 104px;
+    background: darken(#6ABCD5, 10%);
+    padding: 16px;
+    border-radius: 0 2px 0 0;
+  }
+
+  .mdl-tabs__tab-bar {
+    background: #6ABCD5;
+  }
+
+  .render-details__tab-container {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    height: 404px;
+  }
+
+  .mdl-tabs__panel {
+    flex: 1;
+    padding-bottom: 24px;
+  }
+
+  .render-details__title {
+    @include typo-headline();
+    color: #FFFFFF;
+    margin: 0;
+  }
+
+  .render-details__subtitle {
+    opacity: 0.54;
+    font-size: 12px;
+    color: #FFFFFF;
+    font-weight: 400;
+    margin: 4px 0 0 0;
+  }
+
+  .results__button-container {
+    padding: 0 16px;
+  }
+
+  .wpt-results-button,
+  .commit-button {
+    background: #FFF;
+    position: relative;
+    color: $dialog-button-color;
+    display: none;
+
+    &--visible {
+      display: inline-block;
+    }
+  }
+
+  .wpt-results-button {
+    margin-right: 16px;
+  }
+
+  .extended-info__title {
+    @include typo-headline();
+    color: #FFFFFF;
+    margin: 0;
+    opacity: 0.54;
+    font-size: 12px;
+    padding: 24px 16px 0 16px;
+    line-height: 1;
+  }
+
+  .render-details__data {
+    padding: 16px;
+    width: 100%;
+
+    th {
+      font-size: 13px;
+      color: #FFFFFF;
+      line-height: 15px;
+      font-weight: 500;
+      text-align: left;
+      padding-bottom: 16px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      &:before {
+        content: '';
+        width: 12px;
+        height: 12px;
+        margin-right: 8px;
+        display: inline-block;
+        border: 1px solid rgba(0,0,0,0);
+      }
+
+      &.render-details__parse-html-label:before {
+        background: #00B9D8;
+        border: 1px solid rgba(0,0,0,0.3);
+      }
+
+      &.render-details__javascript-label:before {
+        background: #F0C457;
+        border: 1px solid rgba(0,0,0,0.3);
+      }
+
+      &.render-details__styles-label:before {
+        background: #9B7FE6;
+        border: 1px solid rgba(0,0,0,0.3);
+      }
+
+      &.render-details__layout-label:before {
+        background: #7761B3;
+        border: 1px solid rgba(0,0,0,0.3);
+      }
+
+      &.render-details__paint-label:before {
+        background: #74B266;
+        border: 1px solid rgba(0,0,0,0.3);
+      }
+
+      &.render-details__composite-label:before {
+        background: #519242;
+        border: 1px solid rgba(0,0,0,0.3);
+      }
+    }
+
+    td {
+      font-size: 13px;
+      color: #FFFFFF;
+      line-height: 15px;
+      font-weight: 400;
+      text-align: right;
+      padding-bottom: 16px;
+    }
+
+    .positive {
+      color: #FFCDD2;
+    }
+
+    .negative {
+      color: #F0F4C3;
+    }
+  }
+
+  .controls {
+    font-size: 13px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid rgba(0,0,0,0.12);
+    height: 52px;
+    padding: 8px calc(30% + 8px) 8px 8px;
+    line-height: 36px;
+
+    .mdl-button {
+      width: 180px;
+      margin-left: 8px;
+      text-transform: none;
+      font-weight: 400;
+      color: $chart-option-color;
+
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .current-value {
+        flex: 1;
+      }
+    }
+
+    .actions-chart__control {
+      margin: 0 16px;
+      width: 235px;
+      position: relative;
+      display: flex;
+      flex-direction: row;
+    }
+  }
+
+  @include shadow-2dp();
+}

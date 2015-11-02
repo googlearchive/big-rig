@@ -1,0 +1,135 @@
+application: aero-rig
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+# Set 512MB as the memory limit to cope with reasonable size traces.
+instance_class: F4
+handlers:
+
+- url: /images/(.*)
+  static_files: images/\1
+  expiration: "365d"
+  upload: images/(.*)
+  secure: always
+
+- url: /thirdparty/(.*)
+  static_files: thirdparty/static/\1
+  expiration: "365d"
+  upload: thirdparty/static/(.*)
+  secure: always
+
+- url: /addons/(.*)
+  static_files: addons/\1
+  expiration: "365d"
+  upload: addons/(.*)
+  secure: always
+
+- url: /sw.js
+  static_files: scripts/sw.js
+  expiration: "1s"
+  upload: scripts/sw.js
+  secure: always
+
+- url: /favicon.ico
+  static_files: favicon.ico
+  expiration: "365d"
+  upload: favicon.ico
+  secure: always
+
+- url: /manifest.json
+  static_files: manifest.json
+  expiration: "1s"
+  upload: manifest.json
+  secure: always
+
+- url: /scripts/(.*)
+  static_files: scripts/\1
+  expiration: "1d"
+  upload: scripts/(.*)
+  secure: always
+
+- url: /third_party/(.*)
+  static_files: third_party/\1
+  expiration: "1d"
+  upload: third_party/(.*)
+  secure: always
+
+- url: /styles/(.*)
+  static_files: styles/\1
+  expiration: "1d"
+  upload: styles/(.*)
+  secure: always
+
+- url: /LICENSE
+  static_files: LICENSE
+  expiration: "7d"
+  mime_type: text/plain
+  upload: LICENSE
+  secure: always
+
+- url: /user-not-found
+  script: handlers.usernotfound.app
+  secure: always
+
+- url: /action/import
+  script: handlers.import.app
+  secure: always
+
+- url: /import
+  script: handlers.import.app
+  secure: always
+
+- url: /process
+  script: handlers.import.app
+  secure: always
+
+- url: /action/.*
+  script: handlers.action.app
+  secure: always
+  login: required
+
+- url: /help/.*
+  script: handlers.help.app
+  secure: always
+  login: required
+
+- url: /users/.*
+  script: handlers.users.app
+  secure: always
+  login: admin
+
+- url: /project/.*
+  script: handlers.project.app
+  secure: always
+  login: required
+
+- url: /subscribe
+  script: handlers.subscription.app
+  secure: always
+  login: required
+
+- url: /unsubscribe
+  script: handlers.subscription.app
+  secure: always
+  login: required
+
+- url: /status
+  script: handlers.status.app
+  secure: always
+
+- url: /push-test
+  script: handlers.push.app
+  secure: always
+  login: required
+
+- url: /
+  script: handlers.project.app
+  secure: always
+  login: required
+
+libraries:
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest

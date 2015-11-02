@@ -1,0 +1,110 @@
+<!--
+
+Copyright 2015 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+<!doctype html>
+<html>
+  {% include "templates/_includes/head.html" %}
+<body>
+
+{% include "templates/_includes/navigation.html" %}
+{% include "templates/_includes/location.html" %}
+{% include "templates/_includes/action.html" %}
+
+  <main class="main-view">
+
+    <div class="project-list-section">
+
+      {% if actions.count() == 0 %}
+        No actions. Make a new one.
+      {% else %}
+        <table class="actions-list mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+          <thead>
+            <tr>
+              <th class="mdl-data-table__cell--non-numeric">Name</th>
+              <th class="mdl-data-table__cell--non-numeric">Type</th>
+              <th class="mdl-data-table__cell--non-numeric">Label</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for action in actions %}
+            <tr>
+              <td class="mdl-data-table__cell--non-numeric">
+                <a href="./{{ action.key.integer_id() }}/">{{ action.name }}</a>
+              </td>
+              <td class="mdl-data-table__cell--non-numeric">
+                {{ action.type }}
+              </td>
+              <td class="mdl-data-table__cell--non-numeric">
+                {{ action.label }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+
+
+    {% if logs | length > 0 %}
+
+    <div class="project-list-section">
+
+      <h1 class="projects-list-title">Recent activity</h1>
+
+      <table class="projects__log-list mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+        <thead>
+          <tr>
+            <th class="mdl-data-table__cell--non-numeric">Date / Time</th>
+            <th class="mdl-data-table__cell--non-numeric">File</th>
+            <th class="mdl-data-table__cell--non-numeric">Actions Imported</th>
+            <th class="mdl-data-table__cell--non-numeric">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td class="mdl-data-table__cell--non-numeric">
+              {{ log.date.strftime('%b %e, %r') }}
+            </td>
+            <td class="mdl-data-table__cell--non-numeric">
+              {{ log.filename }}
+            </td>
+            <td class="mdl-data-table__cell--non-numeric">
+              {% if log.records_imported != -1 %}
+                {{ log.records_imported }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td class="mdl-data-table__cell--non-numeric">
+              {{ log.status }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% endif %}
+  </main>
+
+  {% include "templates/_includes/toaster.html" %}
+
+  <script src="/scripts/bigrig.js"></script>
+  <script src="/scripts/action.js"></script>
+</body>
+</html>

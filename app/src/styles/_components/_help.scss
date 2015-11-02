@@ -1,0 +1,96 @@
+/**
+ * @license
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.help {
+
+  display: flex;
+  flex-direction: row;;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-content: flex-start;
+  align-items: flex-start;
+  color: rgba(0,0,0,0.87);
+
+  h1 {
+    @include typo-display-1();
+    color: #37474F;
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 0.4em 0;
+    opacity: 0.87;
+  }
+
+  h2 {
+    @include typo-headline();
+    color: #37474F;
+    display: inline-block;
+    width: 100%;
+    margin: 1em 0 0.3em 0;
+    opacity: 0.54;
+  }
+
+  p, ul {
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 1em 0;
+    line-height: 1.8;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    margin: 16px auto;
+    border-radius: 2px;
+  }
+
+  li {
+    line-height: 24px;
+    padding-bottom: 8px;
+
+    p {
+      display: block;
+    }
+  }
+
+  code {
+    font-size: 16px;
+  }
+}
+
+.help__content {
+  flex: 1;
+  padding: 16px;
+  border-radius: 2px;
+  @include shadow-2dp();
+  background: #FFF;
+}
+
+.help__side-nav {
+  width: 256px;
+  margin-left: 32px;
+  padding: 16px;
+  border-radius: 2px;
+  @include shadow-2dp();
+  background: #37474F;
+  color: #FFF;
+
+  h1 {
+    color: #FFF;
+    opacity: 0.54;
+    font-size: 16px;
+  }
+}

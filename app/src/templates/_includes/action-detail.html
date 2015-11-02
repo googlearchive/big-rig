@@ -1,0 +1,164 @@
+{#
+  Copyright 2015 Google Inc. All Rights Reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+#}
+
+<div class="action-type__dropdown" id="action-options-selector">
+  <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="action-type">
+    <i class="material-icons">more_vert</i>
+  </button>
+  <ul class="mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right" for="action-type" id="action-type-options">
+    <li class="mdl-menu__item" for="edit-action">Edit Action</li>
+    <li class="mdl-menu__item" for="delete-action">Delete Action</li>
+  </ul>
+</div>
+
+<div class="dialog" id="edit-action">
+  <div class="dialog__box">
+
+    <section class="dialog__box-content">
+
+      <form action="/action/save" method="post">
+        <h1 class="dialog__title">Edit Action: {{ action_name}}</h1>
+
+        <p class="dialog__description">Change the name and type of this action. Types are based on RAIL metrics and will affect chart rendering and goals.</p>
+
+        <section class="dialog__section">
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" id="action-name" name="action-name" value="{{ action_name }}" pattern=".{4,}" />
+            <label class="mdl-textfield__label" for="action-name">Action Name</label>
+            <span class="mdl-textfield__error">Action name must be longer than 3 characters.</span>
+          </div>
+
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" id="action-label" name="action-label" value="{{ action_label }}" pattern=".{2,}" />
+            <label class="mdl-textfield__label" for="action-name">Action Label</label>
+            <span class="mdl-textfield__error">Action label must not be empty.</span>
+          </div>
+        </section>
+
+        <section class="dialog__section">
+
+          <h2 class="dialog__section-title">Action Type</h2>
+
+          <div class="dialog__radio-divider">
+            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="action-load">
+              <input type="radio" id="action-load" class="mdl-radio__button" name="action-type" value="Load" {% if action_type == 'Load' %}checked{% endif %} />
+              <span class="mdl-radio__label">Load</span>
+            </label>
+          </div>
+
+          <div class="dialog__radio-divider">
+            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="action-response">
+              <input type="radio" id="action-response" class="mdl-radio__button" name="action-type" value="Response" {% if action_type == 'Response' %}checked{% endif %}/>
+              <span class="mdl-radio__label">Response</span>
+            </label>
+          </div>
+
+          <div class="dialog__radio-divider">
+            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="action-animation">
+              <input type="radio" id="action-animation" class="mdl-radio__button" name="action-type" value="Animation" {% if action_type == 'Animation' %}checked{% endif %}/>
+              <span class="mdl-radio__label">Animation</span>
+            </label>
+          </div>
+        </section>
+
+        <div class="dialog__button-container">
+          <button type="button" class="cancel-button mdl-button mdl-js-button mdl-js-ripple-effect">
+            Cancel
+          </button>
+
+          <button type="button" class="confirm-button mdl-button mdl-js-button mdl-js-ripple-effect">
+            Update Action
+          </button>
+        </div>
+
+        <input type="hidden" name="action-key" value="{{ action_key }}">
+        <input type="hidden" name="project-key" value="{{ project_key }}">
+
+      </form>
+    </section>
+
+    <section class="dialog__spinner-container">
+      <div class="dialog__spinner mdl-spinner mdl-js-spinner is-active"></div>
+    </section>
+  </div>
+</div>
+
+<div class="dialog" id="delete-action">
+  <div class="dialog__box">
+
+    <section class="dialog__box-content">
+
+      <form action="/action/delete" method="post">
+        <h1 class="dialog__title">Delete Action: {{ action_name}}</h1>
+
+        <p class="dialog__description">Deleting an action will irreversibly remove all records. Are you sure?</p>
+
+        <div class="dialog__button-container">
+          <button type="button" class="cancel-button mdl-button mdl-js-button mdl-js-ripple-effect">
+            Cancel
+          </button>
+
+          <button type="button" class="confirm-button mdl-button mdl-js-button mdl-js-ripple-effect">
+            Delete Action
+          </button>
+        </div>
+
+        <input type="hidden" name="action-key" value="{{ action_key }}">
+        <input type="hidden" name="project-key" value="{{ project_key }}">
+
+      </form>
+    </section>
+
+    <section class="dialog__spinner-container">
+      <div class="dialog__spinner mdl-spinner mdl-js-spinner is-active"></div>
+    </section>
+  </div>
+</div>
+
+<div class="dialog" id="delete-action-detail">
+  <div class="dialog__box">
+
+    <section class="dialog__box-content">
+
+      <form action="/action/delete-action-detail" method="post">
+        <h1 class="dialog__title">Delete Record</h1>
+
+        <p class="dialog__description">This will irreversibly remove the record. Are you sure?</p>
+
+        <div class="dialog__button-container">
+          <button type="button" class="cancel-button mdl-button mdl-js-button mdl-js-ripple-effect">
+            Cancel
+          </button>
+
+          <button type="button" class="confirm-button mdl-button mdl-js-button mdl-js-ripple-effect">
+            Delete Record
+          </button>
+        </div>
+
+        <input type="hidden" name="action-detail-key" value="">
+        <input type="hidden" name="action-key" value="{{ action_key }}">
+        <input type="hidden" name="project-key" value="{{ project_key }}">
+
+      </form>
+    </section>
+
+    <section class="dialog__spinner-container">
+      <div class="dialog__spinner mdl-spinner mdl-js-spinner is-active"></div>
+    </section>
+  </div>
+</div>
+
+{% include "templates/_includes/trace-upload.html" %}
