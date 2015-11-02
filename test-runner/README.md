@@ -23,6 +23,16 @@ To run the test run node against `runner.js` and provide an output path. **You w
 
 On run you should see Chrome start, the test run, and, finally, the page close. There should be a trace file written that you can import into the Big Rig web app, or provide to the CLI.
 
+### Running on an Android device
+
+Firstly, ensure you have Chrome on the device and have [enabled USB Debugging](https://developers.google.com/web/tools/chrome-devtools/debug/remote-debugging/remote-debugging).
+
+In `runner.js`, update the call to the driver to include the `android` option:
+
+```javascript
+var browser = driver.start({ android: true });
+```
+
 ## Thanks
 
 Thanks to [Sam Saccone](https://twitter.com/samccone), whose brilliant work on [Drool](https://github.com/samccone/drool) acted as a model for utilizing ChromeDriver.
