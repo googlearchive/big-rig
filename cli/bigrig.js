@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -15,6 +17,7 @@
  * limitations under the License.
  */
 
+var argv = require('yargs').argv;
 var clc = require('cli-color');
 var fs = require('fs');
 var processor = require('./processor');
@@ -31,12 +34,12 @@ require('./third_party/tracing/extras/rail/rail_ir_finder.js');
 require('./tracing-config.js');
 
 // Find which file needs parsing.
-if (process.argv.length < 3) {
+if (typeof argv.trace !== 'string') {
   console.error('Trace file needs to be passed.');
   process.exit(1);
 }
 
-path = process.argv[2];
+path = argv.trace;
 
 // Check the file exists.
 try {

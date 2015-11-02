@@ -11,11 +11,12 @@ able to use the CLI:
 
 1. `cd cli`
 1. `npm install`
+1. `chmod +x ./bigrig.js`
 
 ## Usage
 
 ```
-node index.js /path/to/trace.json
+./bigrig.js --trace=/path/to/trace.json
 ```
 
 You should see a pretty printed output of the time breakdown for the trace.
