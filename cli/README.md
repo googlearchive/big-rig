@@ -15,8 +15,16 @@ able to use the CLI:
 
 ## Usage
 
+If installed globally, you can call it like this:
+
+```bash
+bigrig --trace=/path/to/trace.json
 ```
-./bigrig.js --trace=/path/to/trace.json
+
+This will just return a JSON string. If you want it pretty printed, call it with the `--pretty-print` flag:
+
+```bash
+bigrig --trace=/path/to/trace.json --pretty-print
 ```
 
 You should see a pretty printed output of the time breakdown for the trace.
