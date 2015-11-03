@@ -1322,8 +1322,6 @@ export default class Chart {
     if (typeof data.raster !== 'undefined')
       paintTime += data.raster;
 
-    console.log(data.paint, data.raster);
-
     this.detailsParseHTML.textContent =
         this.intlNumber.format(data.parseHTML) + 'ms';
     this.detailsJavaScript.textContent =
@@ -1357,9 +1355,6 @@ export default class Chart {
           <td>${this.intlNumber.format(entry.value)}ms</td>
         </tr>`
     }
-
-    console.log(this.javaScriptExecution);
-    console.log(extendedInfoHTML);
 
     this.extendedInfo.innerHTML = extendedInfoHTML;
   }
