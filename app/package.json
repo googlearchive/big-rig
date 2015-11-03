@@ -1,6 +1,6 @@
 {
   "name": "big-rig-web-app",
-  "version": "1.0.69",
+  "version": "1.0.70",
   "private": true,
   "engines": {
     "node": ">=5.0.0"
