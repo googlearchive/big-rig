@@ -17,14 +17,26 @@
 
 /* global tr */
 var URL = require('url');
+var RESPONSE = 'Response';
+var ANIMATION = 'Animation';
+var LOAD = 'Load';
 
-function analyzeTrace (contents) {
+// Does a bunch on the global object, because the code for trace viewer
+// currently operates on `window`, and the conversion doesn't account for
+// requires and modules.
+require('./global-config.js');
+require('./third_party/tracing/importer/import.js');
+require('./third_party/tracing/extras/importer/trace_event_importer.js');
+require('./third_party/tracing/extras/rail/rail_score.js');
+require('./third_party/tracing/extras/rail/rail_ir_finder.js');
+require('./tracing-config.js');
+
+function analyzeTrace (contents, opts) {
 
   var events = [JSON.stringify({
     traceEvents: JSON.parse(contents)
   })];
 
-  var results = null;
   var model = convertEventsToModel(events);
   var processes = model.getAllProcesses();
   var trace_process = null;
@@ -45,17 +57,8 @@ function analyzeTrace (contents) {
     throw 'Multiple processes found';
 
   trace_process = summarizable.pop();
-  results = processTrace(model, trace_process);
 
-  // RAIL analysis.
-  var modelHelper = new tr.e.audits.ChromeModelHelper(model);
-  var rirf = new tr.e.rail.RAILIRFinder(model, modelHelper);
-  model.interactionRecords = rirf.findAllInteractionRecords();
-
-  results['RAIL Score'] =
-    tr.e.rail.RAILScore.fromModel(model).overallScore.toFixed(4);
-
-  return results;
+  return processTrace(model, trace_process, opts);
 }
 
 function convertEventsToModel (events) {
@@ -71,7 +74,7 @@ function convertEventsToModel (events) {
   return model;
 }
 
-function processTrace (model, trace_process) {
+function processTrace (model, trace_process, opts) {
 
   var threads = getThreads(trace_process);
   var rendererThread = getThreadByName(trace_process, 'CrRendererMain');
@@ -81,57 +84,117 @@ function processTrace (model, trace_process) {
 
   var timeRanges = getTimeRanges(rendererThread);
 
-  if (timeRanges.length === 0)
+  if (timeRanges.length === 0) {
     timeRanges = [{
-      category: 'Load',
-      name: 'Full',
+      title: LOAD,
       start: model.bounds.min,
       duration: (model.bounds.max - model.bounds.min)
     }];
+  }
 
-  return createActionDetailsFromTrace(timeRanges, threads);
+  return createRangesForTrace(timeRanges, threads, opts);
 }
 
-function createActionDetailsFromTrace (timeRanges, threads) {
+function createRangesForTrace (timeRanges, threads, opts) {
 
   /* eslint-disable */
   // Disable linting because eslint can't differentiate JSON from non-JSON
   // @see https://github.com/eslint/eslint/issues/3484
-  var result = {
-    "Duration": timeRanges[0].duration,
-    // "Frames": 0,
-    "ParseHTML": 0,
-    "JavaScript": 0,
-    "Styles": 0,
-    "UpdateLayerTree": 0,
-    "Layout": 0,
-    "Paint": 0,
-    "Raster": 0,
-    "Composite": 0,
-    "ExtendedInfo": {
-      "JavaScript": {
 
+  var results = [];
+
+  opts = opts || { types: { 'Load': LOAD } };
+
+  timeRanges.forEach(function(timeRange) {
+
+    var frames = 0;
+    var timeRangeEnd = timeRange.start + timeRange.duration;
+    var result = {
+      "start": timeRange.start,
+      "end": timeRangeEnd,
+      "duration": timeRange.duration,
+      "parseHTML": 0,
+      "javaScript": 0,
+      "styles": 0,
+      "updateLayerTree": 0,
+      "layout": 0,
+      "paint": 0,
+      "raster": 0,
+      "composite": 0,
+      "extendedInfo": {
+        "domContentLoaded": 0,
+        "loadTime": 0,
+        "firstPaint": 0,
+        "javaScript": {
+
+        }
+      },
+      "title": timeRange.title,
+      "type": opts.types[timeRange.title]
+    };
+
+    /* eslint-enable */
+
+
+    threads.forEach(function(thread) {
+
+      var slices = thread.sliceGroup.topLevelSlices;
+      var slice = null;
+
+      for (var s = 0 ; s < slices.length; s++) {
+        slice = slices[s];
+
+        if (slice.start < timeRange.start || slice.end > timeRangeEnd)
+          continue;
+
+        slice.iterateAllDescendents(function (subslice) {
+          addDurationToResult(subslice, result);
+        });
       }
-    }
-  };
 
-  /* eslint-enable */
 
-  threads.forEach(function(thread) {
+      thread.iterateAllEvents(function(evt) {
 
-    var slices = thread.sliceGroup.topLevelSlices;
-    var slice = null;
+        if (evt.start < timeRange || evt.end > timeRangeEnd)
+          return;
 
-    for (var s = 0 ; s < slices.length; s++) {
-      slice = slices[s];
-      slice.iterateAllDescendents(function (subslice) {
-        addDurationToResult(subslice, result);
+        switch (evt.title) {
+
+          case 'DrawFrame':
+            frames++;
+            break;
+
+          case 'MarkDOMContent':
+            result.extendedInfo.domContentLoaded = evt.start;
+            break;
+
+          case 'MarkLoad':
+            result.extendedInfo.loadTime = evt.start;
+            break;
+
+          case 'MarkFirstPaint':
+            result.extendedInfo.firstPaint = evt.start;
+            break;
+        }
       });
+
+    });
+
+    if (typeof result.type === 'undefined') {
+      if (frames > 5)
+        result.type = ANIMATION;
+      else
+        result.type = RESPONSE;
     }
 
-  });
+    // Convert to fps.
+    if (result.type === ANIMATION)
+      result.fps = Math.floor(frames / (result.duration / 1000));
 
-  return result;
+    results.push(result);
+  })
+
+  return results;
 }
 
 function getJavascriptUrlFromStackInfo (slice) {
@@ -162,43 +225,44 @@ function addDurationToResult (slice, result) {
   var duration = getBestDurationForSlice(slice);
 
   if (slice.title == 'ParseHTML')
-    result['ParseHTML'] += duration;
+    result['parseHTML'] += duration;
   else if (slice.title == 'FunctionCall' ||
           slice.title == 'EvaluateScript' ||
           slice.title == 'MajorGC' ||
           slice.title == 'MinorGC' ||
           slice.title == 'GCEvent') {
-    result['JavaScript'] += duration;
-  }
 
-    // # If we have JS Stacks find out who the culprits are for the
-    // # JavaScript that is running.
+    result['javaScript'] += duration;
+
+    // If we have JS Stacks find out who the culprits are for the
+    // JavaScript that is running.
     var owner = getJavascriptUrlFromStackInfo(slice);
     if (owner !== null) {
       var url = URL.parse(owner);
       var host = url.host;
 
-      if (!result.ExtendedInfo.JavaScript[host])
-        result.ExtendedInfo.JavaScript[host] = 0;
+      if (!result.extendedInfo.javaScript[host])
+        result.extendedInfo.javaScript[host] = 0;
 
-      result.ExtendedInfo.JavaScript[host] += duration;
+      result.extendedInfo.javaScript[host] += duration;
     }
+  }
 
   else if (slice.title == 'UpdateLayoutTree' ||
            slice.title == 'RecalculateStyles' ||
            slice.title == 'ParseAuthorStyleSheet')
-    result['Styles'] += duration;
+    result['styles'] += duration;
   else if (slice.title == 'UpdateLayerTree')
-    result['UpdateLayerTree'] += duration;
+    result['updateLayerTree'] += duration;
   else if (slice.title == 'Layout')
-    result['Layout'] += duration;
+    result['layout'] += duration;
   else if (slice.title == 'Paint')
-    result['Paint'] += duration;
+    result['paint'] += duration;
   else if (slice.title == 'RasterTask' ||
            slice.title == 'Rasterize')
-    result['Raster'] += duration;
+    result['raster'] += duration;
   else if (slice.title == 'CompositeLayers')
-    result['Composite'] += duration;
+    result['composite'] += duration;
 }
 
 function getBestDurationForSlice (slice) {
@@ -262,5 +326,8 @@ function getTimeRanges (thread) {
 }
 
 module.exports = {
+  RESPONSE: RESPONSE,
+  ANIMATION: ANIMATION,
+  LOAD: LOAD,
   analyzeTrace: analyzeTrace
 };

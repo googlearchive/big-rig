@@ -20,22 +20,13 @@
 var argv = require('yargs').argv;
 var clc = require('cli-color');
 var fs = require('fs');
-var processor = require('./processor');
+var processor = require('./lib/processor');
 var path = '';
-
-// Does a bunch on the global object, because the code for trace viewer
-// currently operates on `window`, and the conversion doesn't account for
-// requires and modules.
-require('./global-config.js');
-require('./third_party/tracing/importer/import.js');
-require('./third_party/tracing/extras/importer/trace_event_importer.js');
-require('./third_party/tracing/extras/rail/rail_score.js');
-require('./third_party/tracing/extras/rail/rail_ir_finder.js');
-require('./tracing-config.js');
 
 // Find which file needs parsing.
 if (typeof argv.trace !== 'string') {
-  console.error('Trace file needs to be passed.');
+  console.error(
+      'Trace file path needs to be passed, --trace=/path/to/trace.json');
   process.exit(1);
 }
 
@@ -60,6 +51,7 @@ function prettyPrint (result, indent) {
   var colorFn = clc.cyan;
   var label;
   var value;
+  var suffix;
 
   function padOut(str, len) {
 
@@ -69,24 +61,39 @@ function prettyPrint (result, indent) {
     return str;
   }
 
+  if (keys.length === 0)
+    console.log(labelPadding + '{}');
+
   for (var k = 0; k < keys.length; k++) {
 
+    suffix = '';
     key = keys[k];
-    if (key === 'RAIL Score') {
+    value = result[keys[k]];
+
+    if (key === 'title' || key === 'type')
+      continue;
+
+    if (!isNaN(parseInt(key))) {
       colorFn = clc.magentaBright;
+      key = value.title + ' [' + value.type + ']';
     }
 
     label = colorFn(padOut(key + ':', paddingDistance - indent));
-    value = result[keys[k]];
 
-    if (typeof value === 'number')
-      value = value.toFixed(2) + 'ms';
+    if (typeof value === 'number') {
+
+      if (key !== 'fps') {
+        value = value.toFixed(2);
+        suffix = 'ms';
+      }
+
+      value = value + suffix;
+    }
 
     if (typeof value === 'object') {
       console.log(labelPadding + label);
       prettyPrint(value, indent + 2);
-    }
-    else {
+    } else {
       var msg = labelPadding + label + value;
       console.log(msg);
     }
@@ -96,4 +103,8 @@ function prettyPrint (result, indent) {
 // Read the file, analyze, and print.
 var contents = fs.readFileSync(path, 'utf8');
 var results = processor.analyzeTrace(contents);
-prettyPrint(results);
+
+if (typeof argv['pretty-print'] !== 'undefined')
+  prettyPrint(results);
+else
+  console.log(JSON.stringify(results));
