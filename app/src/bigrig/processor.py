@@ -124,7 +124,7 @@ class TraceProcessor():
     labels = extended_info['labels']
     secret = extended_info['secret']
     status = ''
-    records_imported = 0
+    records_imported = []
 
     if project == None:
       status = "No project found with secret %s" % secret
