@@ -36,12 +36,6 @@ function start (opts) {
     'disabled-by-default-devtools.timeline.frame'
   ];
 
-  if (typeof opts.test.categories !== 'undefined') {
-    opts.test.categories.forEach(function(category) {
-      traceCategories.push(category);
-    });
-  }
-
   if (opts.android)
     options = options.androidChrome();
 
@@ -51,10 +45,25 @@ function start (opts) {
   // Run without a sandbox.
   options.addArguments('no-sandbox');
 
-  if (typeof opts.test.flags !== 'undefined') {
-    opts.test.flags.forEach(function(flag) {
-      options.addArguments(flag);
-    });
+  // Add any test-specific categories, and flags.
+  if (typeof opts.test !== 'undefined') {
+
+    if (typeof opts.test.categories !== 'undefined') {
+      opts.test.categories.forEach(function(category) {
+
+        // Bail if we've already seen this category.
+        if (traceCategories.indexOf(category) >= 0)
+          return;
+
+        traceCategories.push(category);
+      });
+    }
+
+    if (typeof opts.test.flags !== 'undefined') {
+      opts.test.flags.forEach(function(flag) {
+        options.addArguments(flag);
+      });
+    }
   }
 
   // Set up that we want to get trace data.
