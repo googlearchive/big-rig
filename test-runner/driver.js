@@ -40,7 +40,7 @@ function start (opts) {
     options = options.androidChrome();
 
   // Add on GPU benchmarking.
-  options.addArguments('--enable-gpu-benchmarking');
+  options.addArguments('enable-gpu-benchmarking');
 
   // Run without a sandbox.
   options.addArguments('no-sandbox');
