@@ -4,10 +4,16 @@ This is a test runner built on top of [ChromeDriver](https://sites.google.com/a/
 
 The current runner does a scroll test on desktop Chrome Stable, however it can be easily modified and extended to perform other tests.
 
+This is in an early phase, and will ultimately become its own npm module at some point. You will need to manually link it if you wish to use it globally after cloning
+
 ## Installation
 
-There are some dependencies that will need to be installed before you are
-able to use the test runner:
+If you wish to use the bigrigrunner command globally, you will need to link it:
+
+1. `cd test-runner`
+1. `npm link`
+
+If you wish to just run it from the folder:
 
 1. `cd test-runner`
 1. `npm install`
@@ -15,22 +21,32 @@ able to use the test runner:
 
 ## Usage
 
-To run the test run node against `runner.js` and provide an output path. **You will need to modify the URL (and the CSS selector used to determine that the page has loaded) before running the test.**
+To run the test run node against `runner.js` and provide an output path. **You will need also to pass the URL (and the CSS selector used to determine that the page has loaded) before running the test.**
 
-```
-./runner.js --trace=/path/to/trace.json
+```bash
+./runner.js --url http://example.com --selector a --output ~/Desktop/scroll.json
 ```
 
-On run you should see Chrome start, the test run, and, finally, the page close. There should be a trace file written that you can import into the Big Rig web app, or provide to the CLI.
+Alternatively, if you have linked the runner you can call `bigrigrunner`. You can also use shorthand syntax for the arguments if you prefer.
+
+```bash
+bigrigrunner -u https://aerotwist.com -s div.subscribe -o ~/Desktop/aerotwist.scroll.json
+```
+
+On run you should see Chrome start, the test run, and, finally, the page close. There should be a trace file written that you can import into the Big Rig web app, or provide to [the CLI](https://github.com/GoogleChrome/node-big-rig).
+
+You can also run the Big Rig runner and pipe its output straight into [Big Rig's CLI](https://github.com/GoogleChrome/node-big-rig):
+
+```bash
+bigrigrunner -u https://aerotwist.com -s div.subscribe | bigrig --pretty-print
+```
 
 ### Running on an Android device
 
-Firstly, ensure you have Chrome on the device and have [enabled USB Debugging](https://developers.google.com/web/tools/chrome-devtools/debug/remote-debugging/remote-debugging).
+Firstly, ensure you have Chrome on the device and have [enabled USB Debugging](https://developers.google.com/web/tools/chrome-devtools/debug/remote-debugging/remote-debugging). Then use the '-a' flag.
 
-In `runner.js`, update the call to the driver to include the `android` option:
-
-```javascript
-var browser = driver.start({ android: true });
+```bash
+bigrigrunner -u https://aerotwist.com -s div.subscribe -o ~/Desktop/trace.json -a
 ```
 
 ## Thanks

@@ -17,56 +17,117 @@
  * limitations under the License.
  */
 
-var argv = require('yargs').argv;
-var fs = require('fs');
+var argv = require('yargs')
+    .usage('Usage: bigrigrunner -url <url> -selector <selector> -output <file>')
+    .option('url', {
+      alias: 'u',
+      demand: true,
+      describe: 'The URL to run against'
+    })
+    .option('selector', {
+      alias: 's',
+      demand: true,
+      describe: 'The selector indicating that load has completed'
+    })
+    .option('output', {
+      alias: 'o',
+      demand: false,
+      default: '',
+      describe: 'The location of the trace file'
+    })
+    .option('test', {
+      alias: 't',
+      demand: false,
+      default: 'scroll',
+      describe: 'The test to run'
+    })
+    .option('android', {
+      alias: 'a',
+      demand: false,
+      default: false,
+      describe: 'Whether to run over adb'
+    })
+    .argv;
 
-if (typeof argv.trace !== 'string') {
-  console.error('Trace file output location needs to be passed.');
+
+var fs = require('fs');
+var path = argv.output;
+
+if (typeof argv.url !== 'string') {
+  console.error('Error: URL must be a string');
   process.exit(1);
 }
 
-path = argv.trace;
-
-// Check if the file exists.
-try {
-  fileStats = fs.statSync(path);
-
-  if (fileStats)
-    console.warn('Warning: Trace file already exists.');
-
-} catch (e) {
-  // No worries here... If the file doesn't exist we can
-  // ignore the warning and go.
+if (typeof argv.output !== 'string') {
+  console.error('Error: Output location must be a string');
+  process.exit(1);
 }
 
-var URL = 'http://example.com';
-var SELECTOR_FOR_LOADED = 'a';
+if (typeof argv.selector !== 'string') {
+  console.log(argv.selector, typeof argv.selector);
+  console.error('Error: Selector must be a string');
+  process.exit(1);
+}
 
-var fs = require('fs');
-var scrollTest = require('./tests/scroll');
+var testPath = '';
+
+switch (argv.test) {
+
+  case 'scroll':
+    testPath = './tests/scroll';
+    break;
+
+  default:
+    console.warn('Unknown test type (' + argv.test + '), using scroll');
+    testPath = './tests/scroll';
+    break;
+}
+
+var test = require(testPath);
 var driver = require('./driver');
-var browser = driver.start();
+var browser = driver.start({ android: argv.android });
 var webdriver = driver.webdriver;
 
 var steps = [
 
   function start () {
-    browser.get(URL);
+    browser.get(argv.url);
   },
 
   function waitForPageLoad () {
     browser.wait(function() {
-      return browser.isElementPresent(webdriver.By.css(SELECTOR_FOR_LOADED));
+      return browser.isElementPresent(webdriver.By.css(argv.selector));
     }, 10000);
   },
 
   function runTest () {
-    scrollTest.run(browser);
+    test.run(browser);
   }
 ];
 
 driver.flow(steps);
 driver.getTrace(browser).then(function(traceData) {
-  fs.writeFile(path, traceData, 'utf8');
+
+  // If the user specifies an output location, use it.
+  // Otherwise log it out.
+  if (argv.output !== '') {
+
+    // Check if the file exists.
+    try {
+      fileStats = fs.statSync(path);
+
+      if (fileStats)
+        console.warn('Warning: Trace file already exists.');
+
+    } catch (e) {
+      // No worries here... If the file doesn't exist we can
+      // ignore the warning and go.
+    }
+
+    fs.writeFile(path, traceData, 'utf8');
+  } else {
+    console.log(traceData);
+  }
+
   browser.quit();
 });

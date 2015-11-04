@@ -1,8 +1,11 @@
 {
-  "name": "big-rig-test-runner",
+  "name": "bigrig-runnner",
   "version": "1.0.0",
   "description": "A ChromeDriver-based tester for animation and response testing.",
-  "main": "index.js",
+  "main": "runner.js",
+  "bin": {
+    "bigrigrunner": "runner.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,5 +23,13 @@
   "dependencies": {
     "selenium-webdriver": "^2.48.0",
     "yargs": "^3.29.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GoogleChrome/big-rig.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GoogleChrome/big-rig/issues"
+  },
+  "homepage": "https://github.com/GoogleChrome/big-rig#readme"
 }
