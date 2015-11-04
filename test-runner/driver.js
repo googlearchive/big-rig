@@ -36,6 +36,12 @@ function start (opts) {
     'disabled-by-default-devtools.timeline.frame'
   ];
 
+  if (typeof opts.test.categories !== 'undefined') {
+    opts.test.categories.forEach(function(category) {
+      traceCategories.push(category);
+    });
+  }
+
   if (opts.android)
     options = options.androidChrome();
 
@@ -44,6 +50,12 @@ function start (opts) {
 
   // Run without a sandbox.
   options.addArguments('no-sandbox');
+
+  if (typeof opts.test.flags !== 'undefined') {
+    opts.test.flags.forEach(function(flag) {
+      options.addArguments(flag);
+    });
+  }
 
   // Set up that we want to get trace data.
   options.setLoggingPrefs({ performance: 'ALL' });
