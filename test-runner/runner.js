@@ -85,7 +85,10 @@ switch (argv.test) {
 
 var test = require(testPath);
 var driver = require('./driver');
-var browser = driver.start({ android: argv.android });
+var browser = driver.start({
+  test: test.options,
+  android: argv.android
+});
 var webdriver = driver.webdriver;
 
 var steps = [
