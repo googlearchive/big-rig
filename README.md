@@ -11,11 +11,12 @@ Both the web app and CLI ingest trace files that can come from:
 * [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/)
 * [Telemetry](https://www.chromium.org/developers/telemetry)
 
-In this project there are three sub-items:
+In this project there are two sub-items:
 
 1. [A dashboard web app](app/).
-1. [A CLI processor](cli/).
 1. [An automated Chrome test runnner](test-runner/).
+
+There is also a CLI / node module for Big Rig, which [you can find in its own repo](https://github.com/GoogleChrome/node-big-rig).
 
 ## Issues
 
