@@ -73,13 +73,17 @@ var testPath = '';
 
 switch (argv.test) {
 
+  case 'load':
+    testPath = './tests/load';
+    break;
+
   case 'scroll':
     testPath = './tests/scroll';
     break;
 
   default:
-    console.warn('Unknown test type (' + argv.test + '), using scroll');
-    testPath = './tests/scroll';
+    console.warn('Unknown test type (' + argv.test + '), using load');
+    testPath = './tests/load';
     break;
 }
 
