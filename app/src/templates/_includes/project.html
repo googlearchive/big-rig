@@ -26,7 +26,7 @@
 
         <section class="dialog__section">
           <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-            <input class="mdl-textfield__input" type="text" name="project-name" value="{{ project_name }}" pattern=".{2,}" />
+            <input autocomplete="off" class="mdl-textfield__input" type="text" name="project-name" value="{{ project_name }}" pattern=".{2,}" />
             <label class="mdl-textfield__label" for="project-name">Project Name</label>
             <span class="mdl-textfield__error">Project name must not be empty.</span>
           </div>
@@ -74,7 +74,7 @@
 
         <section class="dialog__section">
           <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-            <input class="mdl-textfield__input" type="text" name="project-name" value="" pattern=".{2,}" />
+            <input autocomplete="off" class="mdl-textfield__input" type="text" name="project-name" value="" pattern=".{2,}" />
             <label class="mdl-textfield__label" for="project-name">Project Name</label>
             <span class="mdl-textfield__error">Project name must not be empty.</span>
           </div>
