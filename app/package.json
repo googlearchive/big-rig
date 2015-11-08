@@ -1,6 +1,6 @@
 {
   "name": "bigrig-webapp",
-  "version": "1.0.70",
+  "version": "1.0.73",
   "private": true,
   "engines": {
     "node": ">=5.0.0"
