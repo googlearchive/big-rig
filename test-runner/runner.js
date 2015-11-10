@@ -18,7 +18,8 @@
  */
 
 var argv = require('yargs')
-    .usage('Usage: bigrigrunner -url <url> -selector <selector> -output <file>')
+    .usage(
+        'Usage: bigrigrunner --url <url> --selector <selector> --output <file>')
     .option('url', {
       alias: 'u',
       demand: true,
