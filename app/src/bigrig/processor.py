@@ -98,7 +98,9 @@ class TraceProcessor():
         if x.labels == trace_info.process]
     else:
       for p in processes:
-        if p.labels != None and p.labels != 'chrome://tracing':
+        if (p.labels != None and
+            p.labels != 'chrome://tracing' and
+            p.labels != 'BackgroundPage'):
           summarizable.append(p)
 
     # There should only be one process to process...
