@@ -62,6 +62,11 @@ class TraceProcessor():
 
     try:
       if re.search('json$', trace_info.filename):
+
+        # Re-encode to ISO-8859-1
+        trace_string = trace_string.decode('UTF-8', 'ignore')
+        trace_string = trace_string.encode('ISO-8859-1', 'ignore')
+
         trace_json = json.loads(trace_string)
       elif re.search('json.gz$', trace_info.filename):
         gzip_trace_string = gzip.GzipFile(

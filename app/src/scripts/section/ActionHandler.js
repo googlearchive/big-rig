@@ -21,6 +21,7 @@ export default class ActionHandler {
 
     var actionSelector = document.getElementById('action-options-selector');
     var createAction = actionSelector.querySelector('[for="create-action"]');
+    var noActions = document.querySelector('.no-actions-button');
 
     this.onConfirmCreate = this.onConfirmCreate.bind(this);
     this.onCancelCreate = this.onCancelCreate.bind(this);
@@ -72,9 +73,14 @@ export default class ActionHandler {
       this.onConfirmCreate();
     });
 
-    createAction.addEventListener('click', () => {
+    let onCreateNewActionClick = () => {
       this.createActionDialog.show(this.onConfirmCreate, this.onCancelCreate);
-    });
+    }
+
+    createAction.addEventListener('click', onCreateNewActionClick);
+
+    if (noActions)
+      noActions.addEventListener('click', onCreateNewActionClick);
 
   }
 

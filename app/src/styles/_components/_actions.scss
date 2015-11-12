@@ -14,6 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.no-actions-button {
+  background: $notification-button-color;
+  color: #FFF;
+}
+
+.no-actions-button:hover {
+  background: darken($notification-button-color, 5%);
+}
+
 .actions-list {
   width: 100%;
   border: none;

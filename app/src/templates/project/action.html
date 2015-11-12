@@ -29,7 +29,8 @@ limitations under the License.
     <div class="project-list-section">
 
       {% if actions.count() == 0 %}
-        No actions. Make a new one.
+        <p>No actions found.</p>
+        <button class="no-actions-button mdl-button mdl-js-button mdl-js-ripple-effect">Make a new action</button>
       {% else %}
         <table class="actions-list mdl-data-table mdl-js-data-table mdl-shadow--2dp">
           <thead>
