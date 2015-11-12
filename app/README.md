@@ -8,7 +8,7 @@ The trace files can be uploaded manually, or via a GitHub Webhook. The results a
 
 The backend uses Python and Google App Engine (a node version is in the works).
 
-1. Download the [Google Cloud SDK](https://cloud.google.com/sdk/).
+1. Download the [Google Cloud SDK for Python](https://cloud.google.com/appengine/downloads).
 2. Clone the repo.
 3. `npm install`.
 4. `gulp` (or `gulp dev` if you plan to change code).
