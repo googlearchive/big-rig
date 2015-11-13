@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 'use strict';
 
 var path = require('path');
@@ -40,15 +40,26 @@ class Preferences {
   }
 
   get(key) {
+    if (!key) {
+      throw new Error('You must pass in a key name.');
+    }
+
     if (!fs.existsSync(this._filepath)) {
       return null;
     }
 
     let preferences = JSON.parse(fs.readFileSync(this._filepath));
+    if (!preferences[key]) {
+      return null;
+    }
+
     return preferences[key];
   }
 
   set(key, value) {
+    if (!key) {
+      throw new Error('You must provide a valid key');
+    }
     mkdirp.sync(path.dirname(this._filepath));
 
     var preferences = {};
