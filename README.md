@@ -1,5 +1,7 @@
 # Big Rig
 
+This branch is a node version of big rig web app.
+
 Big Rig is an **experimental**, **proof-of-concept** system for generating and parsing Chrome's trace files. It has a web app dashboard that will allow you to track performance statistics over time, as well as a CLI version for integrating with other parts of your build system.
 
 ![Big Rig web app](https://cloud.githubusercontent.com/assets/617438/10881331/b83e9868-8159-11e5-9f0e-285549e89c76.png)

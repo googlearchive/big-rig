@@ -1,0 +1,25 @@
+{
+  "name": "bg-rig",
+  "version": "0.0.1",
+  "description": "Big Rig is a performance monitoring dashboard.",
+  "homepage": "https://github.com/googlechrome/sw-precache",
+  "main": "src/app.js",
+  "engines": {
+    "node": ">=4.2.2"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "proxyquire": "^1.7.3",
+    "sinon": "^1.17.2"
+  },
+  "dependencies": {
+    "mkdirp": "^0.5.1"
+  },
+  "repository": "googlechrome/big-rig",
+  "bugs": "https://github.com/googlechrome/big-rig/issues",
+  "license": "Apache-2.0",
+  "scripts": {},
+  "bin": {
+    "big-rig": "app.js"
+  }
+}
