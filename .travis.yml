@@ -1,0 +1,10 @@
+sudo: false
+language: node_js
+node_js:
+- '4.2'
+cache:
+  directories:
+  - node_modules
+install:
+- npm install -g gulp mocha
+- npm install

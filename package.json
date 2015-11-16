@@ -18,7 +18,9 @@
   "repository": "googlechrome/big-rig",
   "bugs": "https://github.com/googlechrome/big-rig/issues",
   "license": "Apache-2.0",
-  "scripts": {},
+  "scripts": {
+    "test": "mocha"
+  },
   "bin": {
     "big-rig": "app.js"
   }
