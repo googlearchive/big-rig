@@ -1,5 +1,7 @@
 # Big Rig
 
+[![Build Status](https://travis-ci.org/GoogleChrome/big-rig.svg?branch=node)](https://travis-ci.org/GoogleChrome/big-rig)
+
 This branch is a node version of big rig web app.
 
 Big Rig is an **experimental**, **proof-of-concept** system for generating and parsing Chrome's trace files. It has a web app dashboard that will allow you to track performance statistics over time, as well as a CLI version for integrating with other parts of your build system.
