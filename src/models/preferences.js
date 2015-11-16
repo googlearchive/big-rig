@@ -40,37 +40,71 @@ class Preferences {
   }
 
   get(key) {
-    if (!key) {
-      throw new Error('You must pass in a key name.');
-    }
+    return new Promise((resolve, reject) => {
+      if (!key) {
+        return reject('You must pass in a key name.');
+      }
 
-    if (!fs.existsSync(this._filepath)) {
-      return null;
-    }
+      fs.stat(this._filepath, (statErr, stats) => {
+        if (statErr) {
+          return reject(statErr);
+        }
 
-    let preferences = JSON.parse(fs.readFileSync(this._filepath));
-    if (!preferences[key]) {
-      return null;
-    }
+        if (!stats) {
+          return resolve(null);
+        }
 
-    return preferences[key];
+        fs.readFile(this._filepath, (readErr, fileContents) => {
+          if (readErr) {
+            return reject(readErr);
+          }
+
+          let preferences = JSON.parse(fileContents);
+          if (!preferences[key]) {
+            return resolve(null);
+          }
+
+          return resolve(preferences[key]);
+        });
+      });
+    });
   }
 
   set(key, value) {
-    if (!key) {
-      throw new Error('You must provide a valid key');
-    }
-    mkdirp.sync(path.dirname(this._filepath));
+    return new Promise((resolve, reject) => {
+      if (!key) {
+        return reject('You must provide a valid key');
+      }
 
-    var preferences = {};
+      mkdirp(path.dirname(this._filepath), (mkdirpErr) => {
+        if (mkdirpErr) {
+          return reject(mkdirpErr);
+        }
 
-    if (fs.existsSync(this._filepath)) {
-      preferences = JSON.parse(fs.readFileSync(this._filepath));
-    }
+        fs.stat(this._filepath, (statsErr, stats) => {
+          if (statsErr) {
+            return reject(statsErr);
+          }
 
-    preferences[key] = value;
+          let updatePreferences = (preferences) => {
+            preferences[key] = value;
 
-    fs.writeFileSync(this._filepath, JSON.stringify(preferences));
+            fs.writeFileSync(this._filepath, JSON.stringify(preferences));
+
+            resolve();
+          };
+
+          if (!stats) {
+            // File doesn't exist, so pass in blank preferences object
+            return updatePreferences({}, key, value);
+          }
+
+          fs.readFile(this._filepath, (err, fileContents) => {
+            updatePreferences(JSON.parse(fileContents));
+          });
+        });
+      });
+    });
   }
 }
 

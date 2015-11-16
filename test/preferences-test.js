@@ -108,19 +108,19 @@ describe('models.Preferences', function() {
     before(function() {
       var fsStub = {};
 
-      var existsSyncStub = sinon.stub();
-      existsSyncStub.withArgs(VALID_NEW_FILEPATH).returns(false);
-      existsSyncStub.withArgs(VALID_EXISTING_FILEPATH).returns(true);
-      existsSyncStub.throws(new Error('Unexpected filepath passed to fs.existsSync for test suite.'));
-      fsStub.existsSync = existsSyncStub;
+      var statStub = sinon.stub();
+      statStub.withArgs(VALID_NEW_FILEPATH).callsArgWith(1, null, false);
+      statStub.withArgs(VALID_EXISTING_FILEPATH).callsArgWith(1, null, true);
+      statStub.throws(new Error('Unexpected filepath passed to fs.stat for test suite.'));
+      fsStub.stat = statStub;
 
-      var readFileSyncStub = sinon.stub();
-      readFileSyncStub.withArgs(VALID_EXISTING_FILEPATH).returns(JSON.stringify(TEST_PREFERENCE_OBJECT));
-      readFileSyncStub.throws(new Error('Unexpected filepath passed to fs.existsSync for test suite.'));
-      fsStub.readFileSync = readFileSyncStub;
+      var readFileStub = sinon.stub();
+      readFileStub.withArgs(VALID_EXISTING_FILEPATH).callsArgWith(1, null, JSON.stringify(TEST_PREFERENCE_OBJECT));
+      readFileStub.throws(new Error('Unexpected filepath passed to fs.readFile for test suite.'));
+      fsStub.readFile = readFileStub;
 
-      stubs.push(existsSyncStub);
-      stubs.push(readFileSyncStub);
+      stubs.push(statStub);
+      stubs.push(readFileStub);
 
       PreferencesClass = proxyquire('../src/models/preferences', {
         'fs': fsStub
@@ -128,42 +128,72 @@ describe('models.Preferences', function() {
     });
 
     // get with no parameters
-    it ('should throw an error for no parameters', function() {
-      expect(() => {
-        new PreferencesClass(VALID_EXISTING_FILEPATH).get();
-      }).to.throw(Error);
+    it ('should throw an error for no parameters', function(done) {
+      new PreferencesClass(VALID_EXISTING_FILEPATH).get()
+      .then(function() {
+        done(new Error());
+      })
+      .catch(function(err) {
+        done();
+      });
     });
 
     // get with null parameters
-    it ('should throw an error for null parameter', function() {
-      expect(() => {
-        new PreferencesClass(VALID_EXISTING_FILEPATH).get(null);
-      }).to.throw(Error);
+    it ('should throw an error for null parameter', function(done) {
+      new PreferencesClass(VALID_EXISTING_FILEPATH).get(null)
+      .then(function() {
+        done(new Error());
+      })
+      .catch(function(err) {
+        done();
+      });
     });
 
     // get with empty string
-    it ('should throw an error for empty string parameter', function() {
-      expect(() => {
-        new PreferencesClass(VALID_EXISTING_FILEPATH).get('');
-      }).to.throw(Error);
+    it ('should throw an error for empty string parameter', function(done) {
+      new PreferencesClass(VALID_EXISTING_FILEPATH).get('')
+      .then(function() {
+        done(new Error());
+      })
+      .catch(function(err) {
+        done();
+      });
     });
 
     // get with valid key but no preferences file
-    it ('should return null for a new preferences file requesting a new key', function() {
-      var value = new PreferencesClass(VALID_NEW_FILEPATH).get(VALID_NEW_KEY);
-      expect(value).to.equal(null);
+    it ('should return null for a new preferences file requesting a new key', function(done) {
+      new PreferencesClass(VALID_NEW_FILEPATH).get(VALID_NEW_KEY)
+      .then(function(value) {
+        expect(value).to.equal(null);
+        done();
+      })
+      .catch(function(err) {
+        done(new Error(err));
+      });
     });
 
     // get with valid new key with existing preferences file
-    it ('should return null for existing preferences file with a new key', function() {
-      var value = new PreferencesClass(VALID_EXISTING_FILEPATH).get(VALID_NEW_KEY);
-      expect(value).to.equal(null);
+    it ('should return null for existing preferences file with a new key', function(done) {
+      new PreferencesClass(VALID_EXISTING_FILEPATH).get(VALID_NEW_KEY)
+      .then(function(value) {
+        expect(value).to.equal(null);
+        done();
+      })
+      .catch(function(err) {
+        done(new Error(err));
+      });
     });
 
     // get with existing key with existing preferences file
-    it ('should return the existing value for the existing key in the existing preferences file', function() {
-      var value = new PreferencesClass(VALID_EXISTING_FILEPATH).get(VALID_EXISTING_KEY);
-      expect(value).to.equal(EXISTING_VALUE);
+    it ('should return the existing value for the existing key in the existing preferences file', function(done) {
+      new PreferencesClass(VALID_EXISTING_FILEPATH).get(VALID_EXISTING_KEY)
+      .then(function(value) {
+        expect(value).to.equal(EXISTING_VALUE);
+        done();
+      })
+      .catch(function(err) {
+        done(new Error(err));
+      });
     });
   });
 
@@ -173,32 +203,32 @@ describe('models.Preferences', function() {
 
     before(function() {
       var fsStub = {};
-      var mkdirpStub = {};
+      var mkdirpStub;
 
-      var existsSyncStub = sinon.stub();
-      existsSyncStub.withArgs(VALID_NEW_FILEPATH).returns(false);
-      existsSyncStub.withArgs(VALID_EXISTING_FILEPATH).returns(true);
-      existsSyncStub.throws(new Error('Unexpected filepath passed to fs.existsSync for test suite.'));
-      fsStub.existsSync = existsSyncStub;
+      var statStub = sinon.stub();
+      statStub.withArgs(VALID_NEW_FILEPATH).callsArgWith(1, null, false);
+      statStub.withArgs(VALID_EXISTING_FILEPATH).callsArgWith(1, null, true);
+      statStub.throws(new Error('Unexpected filepath passed to fs.stat for test suite.'));
+      fsStub.stat = statStub;
 
-      var readFileSyncStub = sinon.stub();
-      readFileSyncStub.withArgs(VALID_EXISTING_FILEPATH).returns(JSON.stringify(TEST_PREFERENCE_OBJECT));
-      readFileSyncStub.throws(new Error('Unexpected filepath passed to fs.existsSync for test suite.'));
-      fsStub.readFileSync = readFileSyncStub;
+      var readFileStub = sinon.stub();
+      readFileStub.withArgs(VALID_EXISTING_FILEPATH).callsArgWith(1, null, JSON.stringify(TEST_PREFERENCE_OBJECT));
+      readFileStub.throws(new Error('Unexpected filepath passed to fs.readFile for test suite.'));
+      fsStub.readFile = readFileStub;
 
-      fsStub.writeFileSync = function(path, string) {
+      fsStub.writeFileSync = function(filepath, string) {
         if (writeCallback) {
-          writeCallback(path, string);
+          writeCallback(filepath, string);
         }
       };
 
       var mkdirpSyncStub = sinon.stub();
-      mkdirpSyncStub.withArgs(path.dirname(VALID_NEW_FILEPATH)).returns();
+      mkdirpSyncStub.withArgs(path.dirname(VALID_NEW_FILEPATH)).callsArgWith(1, null);
       mkdirpSyncStub.throws(new Error('Unexpected filepath passed to mkdirp.existsSync for test suite.'));
-      mkdirpStub.sync = mkdirpSyncStub;
+      mkdirpStub = mkdirpSyncStub;
 
-      stubs.push(existsSyncStub);
-      stubs.push(readFileSyncStub);
+      stubs.push(statStub);
+      stubs.push(readFileStub);
       stubs.push(mkdirpSyncStub);
 
       PreferencesClass = proxyquire('../src/models/preferences', {
@@ -208,56 +238,83 @@ describe('models.Preferences', function() {
     });
 
     // set with no parameters
-    it ('should throw an error for no parameters', function() {
-      expect(() => {
-        new PreferencesClass(VALID_EXISTING_FILEPATH).set();
-      }).to.throw(Error);
+    it ('should throw an error for no parameters', function(done) {
+      new PreferencesClass(VALID_EXISTING_FILEPATH).set()
+      .then(function() {
+        done(new Error());
+      })
+      .catch(function() {
+        done();
+      });
     });
 
     // set with null parameters
-    it ('should throw an error for null parameters', function() {
-      expect(() => {
-        new PreferencesClass(VALID_EXISTING_FILEPATH).set(null, null);
-      }).to.throw(Error);
+    it ('should throw an error for null parameters', function(done) {
+      new PreferencesClass(VALID_EXISTING_FILEPATH).set(null, null)
+      .then(function() {
+        done(new Error());
+      })
+      .catch(function() {
+        done();
+      });
     });
 
     // set with empty key parameter
-    it ('should throw an error for empty string for key parameter', function() {
-      expect(() => {
-        new PreferencesClass(VALID_EXISTING_FILEPATH).set('', NEW_VALUE);
-      }).to.throw(Error);
+    it ('should throw an error for empty string for key parameter', function(done) {
+      new PreferencesClass(VALID_EXISTING_FILEPATH).set(null, NEW_VALUE)
+      .then(function() {
+        done(new Error());
+      })
+      .catch(function() {
+        done();
+      });
     });
 
     // set new value to new preferences file
-    it ('should create new folder and should write new value to new file', function() {
-      writeCallback = function(path, value) {
-        var preferences = JSON.parse(value)
-        expect(path).to.equal(VALID_NEW_FILEPATH);
+    it ('should create new folder and should write new value to new file', function(done) {
+      writeCallback = function(filepath, value) {
+        var preferences = JSON.parse(value);
+        expect(filepath).to.equal(VALID_NEW_FILEPATH);
         expect(preferences[VALID_NEW_KEY]).to.equal(NEW_VALUE);
+
+        done();
       };
-      new PreferencesClass(VALID_NEW_FILEPATH).set(VALID_NEW_KEY, NEW_VALUE);
+      new PreferencesClass(VALID_NEW_FILEPATH).set(VALID_NEW_KEY, NEW_VALUE)
+      .catch(function(err) {
+        done(new Error(err));
+      });
     });
 
     // set new value for new key to existing preferences file
-    it ('should assign to new value to existing preferences file', function() {
-      writeCallback = function(path, value) {
-        var preferences = JSON.parse(value)
-        expect(path).to.equal(VALID_EXISTING_FILEPATH);
+    it ('should assign to new value to existing preferences file', function(done) {
+      writeCallback = function(filepath, value) {
+        var preferences = JSON.parse(value);
+        expect(filepath).to.equal(VALID_EXISTING_FILEPATH);
         expect(preferences[VALID_NEW_KEY]).to.equal(NEW_VALUE);
+
+        done();
       };
 
-      new PreferencesClass(VALID_EXISTING_FILEPATH).set(VALID_NEW_KEY, NEW_VALUE);
+      new PreferencesClass(VALID_EXISTING_FILEPATH).set(VALID_NEW_KEY, NEW_VALUE)
+      .catch(function(err) {
+        done(new Error(err));
+      });
     });
 
     // set new value for existing key to existing preferences file
-    it ('should assign to new value to existing key to existing preferences file', function() {
-      writeCallback = function(path, value) {
-        var preferences = JSON.parse(value)
-        expect(path).to.equal(VALID_EXISTING_FILEPATH);
+    it ('should assign to new value to existing key to existing preferences file', function(done) {
+      writeCallback = function(filepath, value) {
+        var preferences = JSON.parse(value);
+        expect(filepath).to.equal(VALID_EXISTING_FILEPATH);
         expect(preferences[VALID_EXISTING_KEY]).to.equal(NEW_VALUE);
+
+        done();
       };
 
-      new PreferencesClass(VALID_EXISTING_FILEPATH).set(VALID_EXISTING_KEY, NEW_VALUE);
+      new PreferencesClass(VALID_EXISTING_FILEPATH).set(VALID_EXISTING_KEY, NEW_VALUE)
+      .catch(function(err) {
+        done(new Error(err));
+      });
     });
   });
 });
