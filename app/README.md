@@ -6,15 +6,27 @@ The trace files can be uploaded manually, or via a GitHub Webhook. The results a
 
 ## Installation
 
+### Prerequisites
+
 The backend uses Python and Google App Engine (a node version is in the works).
 
-1. Download the [Google Cloud SDK](https://cloud.google.com/sdk/).
-2. Clone the repo.
-3. `npm install`.
-4. `gulp` (or `gulp dev` if you plan to change code).
-5. Add the `dist/` folder as an existing project in the Google AppEngine Launcher
-6. Visit the URL the GAE Launcher gave you, e.g. `http://localhost:8080`.
-7. Hit the Help section in Big Rig to get started.
+1. Install the [Google Cloud SDK](https://cloud.google.com/sdk/).
+2. Install the [Google App Engine for Python](https://cloud.google.com/appengine/downloads)
+3. Install Gulp `npm install --global gulp`
+
+### Running Big Rig
+
+1. Clone the [Big Rig repo](https://github.com/GoogleChrome/big-rig) `git clone https://github.com/GoogleChrome/big-rig.git`.
+2. Change directory to the app directory within your Big Rig clone `cd big-rig/app`
+3. Install the Nodejs dependencies `npm install`
+4. Run `gulp` (or `gulp dev` if you plan to change code) in order to build Big Rig.
+5. Open the Google App Engine Launcher application
+6. Within Google App Engine Launcher add the `big-rig/app/dist/` directory as an existing project
+7. Click Run within Google App Engine Launcher
+8. Visit `http://localhost` with the port number Google App Engine Launcher gave you, e.g. `http://localhost:8080`.
+9. Check the "Sign in as Administrator" checkbox and click login
+10. Big Rig is now running, to set up a project follow the "Getting Started" guide from within the Big Rig help page. e.g. `http://localhost:8080/help/getting-started/`
+
 
 ## Current state
 
