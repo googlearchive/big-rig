@@ -20,15 +20,17 @@ var path = require('path');
 var fs = require('fs');
 var mkdirp = require('mkdirp');
 
+/**
+ * Preferences is a simple class to read and write key, value pairs
+ * to a file.
+ *
+ * @author: gauntface
+ */
 class Preferences {
 
   constructor(filepath) {
     if (!filepath) {
       throw new Error('Filepath parameter is invalid \'' + filepath + '\'');
-    }
-
-    if (path.isAbsolute(filepath)) {
-      throw new Error('Filepath must not be absolute \'' + filepath + '\'');
     }
 
     if (filepath.substring(filepath.length - 1, filepath.length) === path.sep) {
@@ -46,10 +48,6 @@ class Preferences {
       }
 
       fs.stat(this._filepath, (statErr, stats) => {
-        if (statErr) {
-          return reject(statErr);
-        }
-
         if (!stats) {
           return resolve(null);
         }
@@ -82,16 +80,18 @@ class Preferences {
         }
 
         fs.stat(this._filepath, (statsErr, stats) => {
-          if (statsErr) {
-            return reject(statsErr);
-          }
-
           let updatePreferences = (preferences) => {
             preferences[key] = value;
 
-            fs.writeFileSync(this._filepath, JSON.stringify(preferences));
+            fs.writeFile(this._filepath, JSON.stringify(preferences),
+              (writeErr) => {
+                if (writeErr) {
+                  return reject(writeErr);
+                }
 
-            resolve();
+                resolve();
+              }
+            );
           };
 
           if (!stats) {
@@ -100,6 +100,9 @@ class Preferences {
           }
 
           fs.readFile(this._filepath, (err, fileContents) => {
+            if (err) {
+              return reject(err);
+            }
             updatePreferences(JSON.parse(fileContents));
           });
         });
