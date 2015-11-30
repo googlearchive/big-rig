@@ -6,5 +6,6 @@ cache:
   directories:
   - node_modules
 install:
-- npm install -g gulp mocha
+- npm install -g gulp mocha eslint
 - npm install
+- eslint ./src/**/*.js
