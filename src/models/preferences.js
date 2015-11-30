@@ -28,7 +28,7 @@ var mkdirp = require('mkdirp');
  */
 class Preferences {
 
-  constructor(filepath) {
+  constructor (filepath) {
     if (!filepath) {
       throw new Error('Filepath parameter is invalid \'' + filepath + '\'');
     }
@@ -41,10 +41,10 @@ class Preferences {
     this._filepath = filepath;
   }
 
-  get(key) {
-    return new Promise((resolve, reject) => {
+  get (key) {
+    return new Promise((resolve) => {
       if (!key) {
-        return reject('You must pass in a key name.');
+        throw new Error('You must pass in a key name.');
       }
 
       fs.stat(this._filepath, (statErr, stats) => {
@@ -54,7 +54,7 @@ class Preferences {
 
         fs.readFile(this._filepath, (readErr, fileContents) => {
           if (readErr) {
-            return reject(readErr);
+            throw readErr;
           }
 
           let preferences = JSON.parse(fileContents);
@@ -68,15 +68,15 @@ class Preferences {
     });
   }
 
-  set(key, value) {
-    return new Promise((resolve, reject) => {
+  set (key, value) {
+    return new Promise((resolve) => {
       if (!key) {
-        return reject('You must provide a valid key');
+        throw new Error('You must provide a valid key');
       }
 
       mkdirp(path.dirname(this._filepath), (mkdirpErr) => {
         if (mkdirpErr) {
-          return reject(mkdirpErr);
+          throw mkdirpErr;
         }
 
         fs.stat(this._filepath, (statsErr, stats) => {
@@ -86,7 +86,7 @@ class Preferences {
             fs.writeFile(this._filepath, JSON.stringify(preferences),
               (writeErr) => {
                 if (writeErr) {
-                  return reject(writeErr);
+                  throw writeErr;
                 }
 
                 resolve();
@@ -101,7 +101,7 @@ class Preferences {
 
           fs.readFile(this._filepath, (err, fileContents) => {
             if (err) {
-              return reject(err);
+              throw err;
             }
             updatePreferences(JSON.parse(fileContents));
           });
