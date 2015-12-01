@@ -20,7 +20,7 @@ var fs = require('fs');
 var rimraf = require('rimraf');
 var ncp = require('ncp');
 
-// This is a test and want descriptions to be useful, if this
+// This is a test and we want descriptions to be useful, if this
 // breaks the max-length, it's ok.
 
 /* eslint-disable max-len */
