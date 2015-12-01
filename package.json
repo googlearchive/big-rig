@@ -15,7 +15,8 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
-    "mkdirp": "^0.5.1"
+    "mkdirp": "^0.5.1",
+    "mysql": "^2.9.0"
   },
   "repository": "googlechrome/big-rig",
   "bugs": "https://github.com/googlechrome/big-rig/issues",
