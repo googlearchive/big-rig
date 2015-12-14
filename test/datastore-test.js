@@ -6,7 +6,7 @@ var chai = require('chai');
 var expect = chai.expect;
 var chaiAsPromised = require('chai-as-promised');
 var dataStore = require('../src/models/datastore');
-var models = require('./models/Models');
+var models = require('./data/models/Models');
 var STORE_NAME = 'test';
 
 chai.use(chaiAsPromised);
