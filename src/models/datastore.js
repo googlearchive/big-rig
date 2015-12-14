@@ -16,38 +16,27 @@
 
 'use strict';
 
-let ModelFactory = require('../helpers/model-factory');
-let Connection = require('./connection');
+let SchemaHelper = require('../helpers/schema-helper');
+let DataStoreConnection = require('./datastore-connection');
 
+/**
+ * Acts as a wrapper around MongoDB to make manipulation of connections, objects
+ * and data a little easier to manage.
+ * @author paullewis
+ */
 class DataStore {
 
-  constructor () {
-    this.storeName_ = null;
-  }
-
-  configure (opts) {
-    if (typeof opts === 'undefined') {
-      throw new Error('DataStore configuration not provided.');
+  constructor (storeName, schemaData) {
+    if (typeof storeName === 'undefined' || storeName === null) {
+      throw new Error('Store name must be provided.');
     }
 
-    this.storeName = opts.store || null;
-    ModelFactory.modelData = opts.models || null;
-  }
+    if (typeof schemaData === 'undefined' || schemaData === null) {
+      throw new Error('Schema data must be provided.');
+    }
 
-  get storeName () {
-    return this.storeName_;
-  }
-
-  set storeName (storeName) {
-    this.storeName_ = storeName;
-  }
-
-  get models () {
-    return ModelFactory.modelData;
-  }
-
-  set models (modelData) {
-    ModelFactory.modelData = modelData;
+    this.storeName = storeName;
+    SchemaHelper.schemaData = schemaData;
   }
 
   _ensureValidPopulations (populations) {
@@ -70,14 +59,19 @@ class DataStore {
     return populations;
   }
 
+  /**
+   * Helper function that sets up a connection, calls into the callback provided
+   * and then closes the connection. This is used by puts, gets, deletes, etc
+   * since they all need to get a connection and mutate the data in some way.
+   */
   action_ (type, cb) {
     if (this.storeName === null) {
-      return Promise.reject(new Error('Database name must be set.'));
+      return Promise.reject(new Error('Store name must be set.'));
     }
 
     let connection;
 
-    return Connection
+    return DataStoreConnection
 
         // Get a connection.
         .getFromPool(this.storeName)
@@ -89,21 +83,25 @@ class DataStore {
 
         // Call the callback.
         .then(() => {
-          let model = ModelFactory.get(type);
+          let schema = SchemaHelper.getSchemaInstance(type);
 
-          if (model === null) {
-            return Promise.reject(new Error('No model found for ' + type));
+          if (schema === null) {
+            return Promise.reject(new Error('No schema found for ' + type));
           }
 
-          return cb(model);
+          return cb(schema);
         })
 
         // Propagate the result
         .then(result => {
-          Connection.returnToPool(connection);
-          return result;
-        }).catch(err => {
-          Connection.returnToPool(connection);
+          // Close the connection first, then return the result.
+          return DataStoreConnection.returnToPool(connection).then( () => {
+            return result;
+          });
+        })
+
+        .catch(err => {
+          DataStoreConnection.returnToPool(connection);
           throw err;
         });
   }
@@ -122,18 +120,23 @@ class DataStore {
       return Promise.all(data.map((item) => this.put(type, item)));
     }
 
+    // Make sure that a string type is passed.
+    if (typeof type !== 'string') {
+      return Promise.reject(new Error('put() requires type as a string.'));
+    }
+
     // Make sure that an object is passed.
     if (typeof data !== 'object') {
-      return Promise.reject(new Error('put() requires an object.'));
+      return Promise.reject(new Error('put() requires data as an object.'));
     }
 
     // Check if the data is an existing model. If so, fail.
     if (typeof data._id === 'object' &&
         data._id.constructor.name === 'ObjectID') {
-      return Promise.reject(new Error('put() cannot take an existing model.'));
+      return Promise.reject(new Error('put() cannot take an existing schema.'));
     }
 
-    return this.action_(type, (model) => {
+    return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
         // Assume it's a plain insert action.
         let conditions = data;
@@ -149,7 +152,7 @@ class DataStore {
 
         // Use upsert to insert instead of update if no record exists.
         // Also using the model-centric way to ensure any hooks get fired.
-        model.findOneAndUpdate(conditions, data, {
+        schema.findOneAndUpdate(conditions, data, {
           upsert: true
         },
           function (err) {
@@ -169,7 +172,13 @@ class DataStore {
       _id: id
     };
 
-    return this.get(type, opts).then(rooms => rooms[0]);
+    return this.get(type, opts).then(rooms => {
+      if (rooms.length < 1) {
+        return null;
+      }
+
+      return rooms[0];
+    });
   }
 
   get (type, opts) {
@@ -180,10 +189,10 @@ class DataStore {
     let criteria = opts.criteria || {};
     let populations = this._ensureValidPopulations(opts.populate);
 
-    return this.action_(type, (model) => {
+    return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
         // Make a query.
-        let query = model.find(criteria);
+        let query = schema.find(criteria);
 
         if (typeof sort === 'object') {
           query = query.sort(sort);
@@ -215,11 +224,10 @@ class DataStore {
   }
 
   delete (type, id) {
-    return this.action_(type, (model) => {
+    return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
-
         // Formulated this way so that schema hooks fire.
-        model.findOne({
+        schema.findOne({
           _id: id
         }, (findErr, findResult) => {
           if (findErr) {
@@ -243,10 +251,10 @@ class DataStore {
   }
 
   aggregate (type, steps) {
-    return this.action_(type, (model) => {
+    return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
         // Make a query.
-        model.aggregate(steps, (err, results) => {
+        schema.aggregate(steps, (err, results) => {
           if (err) {
             return reject(err);
           }
@@ -258,4 +266,4 @@ class DataStore {
   }
 }
 
-module.exports = new DataStore();
+module.exports = DataStore;

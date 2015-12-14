@@ -17,21 +17,26 @@
 'use strict';
 
 let file = require('file');
-let models = {};
+let schemas = {};
 
-file.walkSync('./test/data/models', (start, dirs, files) => {
-  files.forEach(modelFile => {
-    if (modelFile === 'models.js' || !(/.js$/.test(modelFile))) {
+file.walkSync('./test/data/schemas', (start, dirs, files) => {
+  files.forEach(schemaFile => {
+    if (schemaFile === 'schemas.js' ||
+        schemaFile === 'schema.js' ||
+        !(/.js$/.test(schemaFile))) {
       return;
     }
 
-    let model = require('./' + modelFile.replace(/.js$/, ''));
+    let schema = require('./' + schemaFile.replace(/.js$/, ''));
 
-    models[model.name] = {
-      factory: model.factory,
+    schemas[schema.collectionName] = {
+      collectionName: schema.collectionName,
+      factory: schema.factory.bind(schema),
       instance: null
     };
   });
 });
 
-module.exports = models;
+// console.log(schemas);
+
+module.exports = schemas;

@@ -17,22 +17,27 @@
 'use strict';
 
 let mongoose = require('mongoose');
-let mongooseSchema = mongoose.Schema;
+let Schema = require('./schema');
 
-let schema = mongooseSchema({
-  _test: {
-    type: mongooseSchema.Types.ObjectId, ref: 'test', required: true
-  },
-  name: {
-    type: String, required: true, unique: true
+class TestNoRequireWithVerbositySchema extends Schema {
+  get collectionName () {
+    return 'TestNoRequireWithVerbositySchema';
   }
-}, {
-  autoIndex: false
-});
 
-module.exports = {
-  name: 'testreferrer',
-  factory: function (connection) {
-    return connection.model('testreferrer', schema);
+  get schema () {
+    let mongooseSchema = mongoose.Schema;
+    let schema = mongooseSchema({
+      name: {
+        type: String
+      }
+    });
+
+    schema.post('save', function () {
+      console.log('Saved test model');
+    });
+
+    return schema;
   }
-};
+}
+
+module.exports = new TestNoRequireWithVerbositySchema();

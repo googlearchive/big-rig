@@ -16,18 +16,19 @@
 
 'use strict';
 
-let mongoose = require('mongoose');
-let mongooseSchema = mongoose.Schema;
+class Schema {
 
-let schema = mongooseSchema({
-  name: {
-    type: String
+  get collectionName () {
+    throw new Error('Cannot instantiate collection; no collection name.');
   }
-});
 
-module.exports = {
-  name: 'testnorequire',
-  factory: function (connection) {
-    return connection.model('testnorequire', schema);
+  get schema () {
+    throw new Error('Schema should be subclassed with a proper schema.');
   }
-};
+
+  factory (connection) {
+    return connection.model(this.collectionName, this.schema);
+  }
+}
+
+module.exports = Schema;

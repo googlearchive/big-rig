@@ -17,16 +17,16 @@
 'use strict';
 
 let mongoose = require('mongoose');
-let ModelFactory = require('../helpers/model-factory');
+let SchemaHelper = require('../helpers/schema-helper');
 
-class Connection {
+class DataStoreConnection {
 
-  static getFromPool (databaseName) {
-    if (typeof databaseName === 'undefined' || databaseName === null) {
-      throw 'No database name provided.';
+  static getFromPool (storeName) {
+    if (typeof storeName === 'undefined' || storeName === null) {
+      throw new Error('No store name provided.');
     }
 
-    let url = Connection.URL + databaseName;
+    let url = DataStoreConnection.URL + storeName;
 
     return new Promise((resolve, reject) => {
       let db = mongoose.createConnection(url);
@@ -35,7 +35,7 @@ class Connection {
       });
       db.on('open', () => {
         // Update all the models to use this connection.
-        ModelFactory.connectAll(db);
+        SchemaHelper.connectAll(db);
         resolve(db);
       });
     });
@@ -43,8 +43,12 @@ class Connection {
 
   static returnToPool (db) {
     // Remove all connected instances of the models.
-    ModelFactory.disconnectAll();
-    db.close();
+    SchemaHelper.disconnectAll();
+    return new Promise((resolve, reject) => {
+      db.close( () => {
+        resolve();
+      });
+    });
   }
 
   static get URL () {
@@ -52,4 +56,4 @@ class Connection {
   }
 }
 
-module.exports = Connection;
+module.exports = DataStoreConnection;

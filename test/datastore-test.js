@@ -5,9 +5,11 @@
 var chai = require('chai');
 var expect = chai.expect;
 var chaiAsPromised = require('chai-as-promised');
-var dataStore = require('../src/models/datastore');
-var models = require('./data/models/Models');
-var STORE_NAME = 'test';
+
+// DataStore stuff.
+var DataStore = require('../src/models/datastore');
+var schemas = require('./data/schemas/schemas');
+var STORE_NAME = 'TestStore';
 
 chai.use(chaiAsPromised);
 
@@ -15,22 +17,18 @@ describe('models.DataStore', function () {
   // Basic setup.
   describe('DataStore.configure', function () {
     it ('throws if no config is given', function () {
-      return expect(dataStore.configure).to.throw(
-        Error, 'DataStore configuration not provided.'
+      function createStore () {
+        new DataStore();
+      }
+
+      return expect(createStore).to.throw(
+        Error, 'Store name must be provided.'
       );
     });
   });
 
   // Put.
   describe('DataStore.put', function () {
-    // Set up the data store before each run.
-    beforeEach (function () {
-      dataStore.configure({
-        store: STORE_NAME,
-        models: models
-      });
-    });
-
     // Delete the test store contents directly each time.
     afterEach(function (done) {
       let mongoose = require('mongoose');
@@ -42,32 +40,45 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if no type is given', function () {
+      var dataStore = new DataStore(STORE_NAME, schemas);
       var put = dataStore.put(undefined, {});
 
       return expect(put).to.eventually.be.rejectedWith(
-        Error, 'Model type not provided.'
+        Error, 'put() requires type as a string.'
+      );
+    });
+
+    it ('rejects if unknown type is given', function () {
+      var dataStore = new DataStore(STORE_NAME, schemas);
+      var put = dataStore.put('person', {});
+
+      return expect(put).to.eventually.be.rejectedWith(
+        Error, 'Unknown schema type provided: person.'
       );
     });
 
     it ('rejects if no data is given', function () {
-      var put = dataStore.put('test');
+      var dataStore = new DataStore(STORE_NAME, schemas);
+      var put = dataStore.put(schemas.TestSchema.collectionName, undefined);
 
       return expect(put).to.eventually.be.rejectedWith(
-        Error, 'put() requires an object.'
+        Error, 'put() requires data as an object.'
       );
     });
 
     it ('rejects if data is not an object (requires)', function () {
-      var put = dataStore.put('testnorequire', 1);
+      var dataStore = new DataStore(STORE_NAME, schemas);
+      var put = dataStore.put(schemas.TestNoRequireSchema.collectionName, 1);
 
       return expect(put).to.eventually.be.rejectedWith(
-        Error, 'put() requires an object.'
+        Error, 'put() requires data as an object.'
       );
     });
 
     it ('rejects if data is an array with no objects', function () {
-      var put = dataStore.put('testnorequire', [1, {
-        name: 'testObject'
+      var dataStore = new DataStore(STORE_NAME, schemas);
+      var put = dataStore.put(schemas.TestNoRequireSchema.collectionName, [1, {
+        name: 'modelData'
       }]);
 
       return expect(put).to.eventually.be.rejectedWith(
@@ -76,14 +87,16 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if data contains an empty property', function () {
-      var testObject = {
-        name: 'testObject'
+      var modelData = {
+        name: 'Test Record'
       };
 
-      // This attempts to write to the root object, causing MongoDB issues.
-      testObject[''] = '';
+      // This attempts to write to the root object, causing MongoDB to fail.
+      modelData[''] = '';
 
-      var put = dataStore.put('testnorequire', testObject);
+      var dataStore = new DataStore(STORE_NAME, schemas);
+      var put = dataStore.put(schemas.TestNoRequireSchema.collectionName,
+          modelData);
 
       return expect(put).to.eventually.be.rejectedWith(
         'Cannot call setValue on the root object'
@@ -91,110 +104,141 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if given an existing model', function () {
-      var testObject = {
-        name: 'testName'
+      var modelData = {
+        name: 'Test Record'
       };
 
+      // Write the content to the MongoDB database without the abstraction.
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var ConnectedModel = models.test.factory(connection);
+        var db = mongoose
+            .createConnection('mongodb://localhost/' + STORE_NAME);
 
-          var instance = new ConnectedModel(testObject);
-          instance.save(function (err, result) {
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
+          var model = new Schema(modelData);
+
+          model.save(function (err, result) {
             if (err) {
               throw err;
             }
 
-            mongoose.disconnect();
-            resolve(result);
+            db.close(function () {
+              resolve(result);
+            });
           });
         });
       }).then(function (newInstance) {
         newInstance.name = 'testNameUpdated';
-        return expect(dataStore.put('test', newInstance)).to.be.rejectedWith(
-          Error, 'put() cannot take an existing model'
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var put = dataStore.put(schemas.TestSchema.collectionName, newInstance);
+
+        return expect(put).to.be.rejectedWith(
+          Error, 'put() cannot take an existing schema.'
         );
       });
     });
 
     it ('creates a new document', function () {
-      var testObject = {
+      var dataStore = new DataStore(STORE_NAME, schemas);
+      var modelData = {
         name: 'testName'
       };
 
-      return dataStore.put('test', testObject)
+      return dataStore.put(schemas.TestSchema.collectionName, modelData)
         .then(function () {
+          // Check that the data stored correctly by going to the database
+          // directly and pulling the record.
           return new Promise(function (resolve, reject) {
             var mongoose = require('mongoose');
-            mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-              var connection = mongoose.connection;
-              var connectedModel = models.test.factory(connection);
+            var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-              connectedModel.find(testObject, function (err, result) {
+            db.on('open', function () {
+              // Instantiate the schema for the connection.
+              var model = schemas.TestSchema.factory(db);
+
+              model.find(modelData, function (err, result) {
                 if (err) {
                   throw err;
                 }
 
-                mongoose.disconnect();
-                resolve(result[0]);
+                db.close(function () {
+                  resolve(result[0]);
+                });
               });
             });
           });
         }).then(function (retrievedInstance) {
-          return expect(retrievedInstance.name).to.equal(testObject.name);
+          return expect(retrievedInstance.name).to.equal(modelData.name);
         });
     });
 
     it ('updates an existing document\'s simple property', function () {
-      var testObject = {
+      var modelData = {
         name: 'testName'
       };
       var originalInstance;
 
+      // First store the data directly.
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var ConnectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-          var instance = new ConnectedModel(testObject);
-          instance.save(function (err, result) {
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
+          var model = new Schema(modelData);
+
+          model.save(function (err, result) {
             if (err) {
               throw err;
             }
 
-            mongoose.disconnect();
-            resolve(result);
+            db.close(function () {
+              resolve(result);
+            });
           });
         });
-      }).then(function (newInstance) {
+      })
+
+      // Then use the abstraction to pull it from the store, and update it.
+      .then(function (newInstance) {
         originalInstance = newInstance;
 
-        return dataStore.put('test', {
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        return dataStore.put(schemas.TestSchema.collectionName, {
           name: 'testNameUpdated'
         }, newInstance._id);
-      }).then(function () {
+      })
+
+      // Go direct to pull it a second time and check that it's updated.
+      .then(function () {
         return new Promise(function (resolve, reject) {
           var mongoose = require('mongoose');
-          mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-            var connection = mongoose.connection;
-            var connectedModel = models.test.factory(connection);
+          var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-            connectedModel.find({
+          db.on('open', function () {
+            var schema = schemas.TestSchema.factory(db);
+
+            schema.find({
               name: 'testNameUpdated'
             }, function (err, result) {
               if (err) {
                 throw err;
               }
 
-              mongoose.disconnect();
-              resolve(result[0]);
+              db.close(function () {
+                resolve(result[0]);
+              });
             });
           });
         });
-      }).then(function (updatedInstance) {
+      })
+
+      // Check that the values match.
+      .then(function (updatedInstance) {
         // Check this is still the same object.
         var updatedInstanceID = updatedInstance._id.toString();
         var originalInstanceID = originalInstance._id.toString();
@@ -207,72 +251,96 @@ describe('models.DataStore', function () {
     });
 
     it ('updates an existing document\'s populated property', function () {
-      var testObject = {
-        name: 'test'
+      var modelData = {
+        name: 'Test Record'
       };
-      var altTestObject = {
-        name: 'altTest'
+      var altModelData = {
+        name: 'Alternate Test Record'
       };
       var testReferrerObject = {
-        name: 'test referrer'
+        name: 'Record that refers to Test or Alt Test'
       };
 
       var insertedInstances;
 
+      // Start by inserting the Test and Alt Test records directly.
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var connectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
+
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
 
           // Store the test and alt objects.
-          connectedModel.create([testObject, altTestObject],
+          Schema.create([modelData, altModelData],
             function (err, result) {
               if (err) {
                 throw err;
               }
 
-              mongoose.disconnect();
-              resolve(result);
+              db.close(function () {
+                resolve(result);
+              });
             });
         });
-      }).then(function (newInstances) {
+      })
+
+      // Now insert the Referrer record...
+      .then(function (newInstances) {
         insertedInstances = newInstances;
 
         return new Promise(function (resolve, reject) {
           var mongoose = require('mongoose');
-          mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-            var connection = mongoose.connection;
-            var ConnectedModel = models.testreferrer.factory(connection);
+          var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-            // Set the test to point to the new instance.
+          db.on('open', function () {
+            var Schema = schemas.TestReferrerSchema.factory(db);
+
+            // Set the referrer to point to  Test.
             testReferrerObject._test = insertedInstances[0]._id;
 
-            var instance = new ConnectedModel(testReferrerObject);
-            instance.save(function (err, result) {
+            var model = new Schema(testReferrerObject);
+            model.save(function (err, result) {
               if (err) {
                 throw err;
               }
 
-              mongoose.disconnect();
-              resolve(result);
+              db.close(function () {
+                resolve(result);
+              });
             });
           });
         });
-      }).then(function (testRefObject) {
-        // Update the referring test to point to the altTestObject.
-        return dataStore.put('testreferrer', {
+      })
+
+
+      // Update the referring test to point to the Alt Test,
+      // using the abstraction.
+      .then(function (testRefObject) {
+        var dataStore = new DataStore(STORE_NAME, schemas);
+
+        return dataStore.put(schemas.TestReferrerSchema.collectionName, {
           _test: insertedInstances[1]._id
         }, testRefObject._id);
-      }).then(function () {
-        // Now check in to see if the populated version is correct.
+      })
+
+      // Now go direct and check that the populated version points to Alt Test.
+      .then(function () {
         return new Promise(function (resolve, reject) {
           var mongoose = require('mongoose');
-          mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-            var connection = mongoose.connection;
-            var connectedModel = models.testreferrer.factory(connection);
+          var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-            connectedModel
+          db.on('open', function () {
+            // Register the Test Schema for this connection so it can be
+            // populated as part of the query.
+            schemas.TestSchema.factory(db);
+
+            var Schema = schemas.TestReferrerSchema.factory(db);
+
+            Schema
               .find()
               .populate('_test')
               .exec(function (err, result) {
@@ -280,18 +348,19 @@ describe('models.DataStore', function () {
                   throw err;
                 }
 
-                mongoose.disconnect();
-                resolve(result[0]);
+                db.close(function () {
+                  resolve(result[0]);
+                });
               });
           });
         });
       }).then(function (record) {
-        return expect(record._test.name).to.equal(altTestObject.name);
+        return expect(record._test.name).to.equal(altModelData.name);
       });
     });
 
     it ('can bulk insert multiple records', function () {
-      var testObjects = [
+      var modelData = [
         {
           name: 'record1', createdAt: new Date(2011, 1, 3)
         },
@@ -303,21 +372,26 @@ describe('models.DataStore', function () {
         }
       ];
 
-      return dataStore.put('test', testObjects)
+      var dataStore = new DataStore(STORE_NAME, schemas);
+
+      return dataStore.put(schemas.TestSchema.collectionName, modelData)
         .then(function () {
           return new Promise(function (resolve, reject) {
             var mongoose = require('mongoose');
-            mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-              var connection = mongoose.connection;
-              var connectedModel = models.test.factory(connection);
+            var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-              connectedModel.find(function (err, results) {
+            db.on('open', function () {
+              var model = schemas.TestSchema.factory(db);
+
+              model.find(function (err, results) {
                 if (err) {
                   throw err;
                 }
 
-                mongoose.disconnect();
-                resolve(results);
+                db.close(function () {
+                  resolve(results);
+                });
               });
             });
           });
@@ -338,14 +412,6 @@ describe('models.DataStore', function () {
 
   // Get.
   describe('DataStore.get', function () {
-    // Set up the data store before each run.
-    beforeEach (function () {
-      dataStore.configure({
-        store: STORE_NAME,
-        models: models
-      });
-    });
-
     // Delete the test store contents directly each time.
     afterEach(function (done) {
       let mongoose = require('mongoose');
@@ -357,13 +423,16 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if no type is given', function () {
+      var dataStore = new DataStore(STORE_NAME, schemas);
+
       return expect(dataStore.get()).to.eventually.be.rejectedWith(
-        Error, 'Model type not provided.'
+        Error, 'Schema type not provided.'
       );
     });
 
     it ('returns an empty array when there are no records', function () {
-      var getAll = dataStore.get('test');
+      var dataStore = new DataStore(STORE_NAME, schemas);
+      var getAll = dataStore.get(schemas.TestSchema.collectionName);
 
       return Promise.all([
         expect(getAll).to.eventually.be.instanceof(Array),
@@ -372,49 +441,54 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects when given a garbage query', function () {
+      var dataStore = new DataStore(STORE_NAME, schemas);
       var getAll = dataStore.get('wobblejobble');
 
       return expect(getAll).to.eventually.be.rejectedWith(
-        Error, 'Unknown model type provided: wobblejobble'
+        Error, 'Unknown schema type provided: wobblejobble'
       );
     });
 
     it ('returns an array of records', function () {
-      var testObject = {
-        name: 'testName'
+      var modelData = {
+        name: 'Test Record'
       };
 
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var ConnectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-          var instance = new ConnectedModel(testObject);
-          instance.save(function (err, result) {
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
+
+          var model = new Schema(modelData);
+          model.save(function (err, result) {
             if (err) {
               throw err;
             }
 
-            mongoose.disconnect();
-            resolve(result);
+            db.close(function () {
+              resolve(result);
+            });
           });
         });
       }).then(function (newInstance) {
-        var getAll = dataStore.get('test');
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var getAll = dataStore.get(schemas.TestSchema.collectionName);
 
         return Promise.all([
           expect(getAll).to.eventually.be.instanceof(Array),
           expect(getAll).to.eventually.have.length(1),
           expect(getAll.then(function (results) {
             return results[0].name;
-          })).to.eventually.equal(testObject.name)
+          })).to.eventually.equal(modelData.name)
         ]);
       });
     });
 
     it ('sorts ascending', function () {
-      var testObjects = [
+      var modelData = [
         {
           name: 'record1', createdAt: new Date(2011, 1, 3)
         },
@@ -426,26 +500,29 @@ describe('models.DataStore', function () {
         }
       ];
 
+      // Store the data directly
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME,
-          function () {
-            var connection = mongoose.connection;
-            var connectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-            connectedModel.create(testObjects, (function (err, result) {
-              if (err) {
-                throw err;
-              }
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
 
-              mongoose.disconnect();
+          Schema.create(modelData, function (err, result) {
+            if (err) {
+              throw err;
+            }
+
+            db.close(function () {
               resolve(result);
-            }));
-          }
-        );
+            });
+          });
+        });
       })
       .then(function () {
-        var getAll = dataStore.get('test', {
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var getAll = dataStore.get(schemas.TestSchema.collectionName, {
           sort: {
             createdAt: 1
           }
@@ -456,13 +533,13 @@ describe('models.DataStore', function () {
           expect(getAll).to.eventually.have.length(3),
           expect(getAll.then(function (results) {
             return results[0].name;
-          })).to.eventually.equal(testObjects[0].name)
+          })).to.eventually.equal(modelData[0].name)
         ]);
       });
     });
 
     it ('sorts descending', function () {
-      var testObjects = [
+      var modelData = [
         {
           name: 'record1', createdAt: new Date(2011, 1, 3)
         },
@@ -474,26 +551,29 @@ describe('models.DataStore', function () {
         }
       ];
 
+      // Store the data directly.
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME,
-          function () {
-            var connection = mongoose.connection;
-            var connectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-            connectedModel.create(testObjects, (function (err, result) {
-              if (err) {
-                throw err;
-              }
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
 
-              mongoose.disconnect();
+          Schema.create(modelData, function (err, result) {
+            if (err) {
+              throw err;
+            }
+
+            db.close(function () {
               resolve(result);
-            }));
-          }
-        );
+            });
+          });
+        });
       })
       .then(function () {
-        var getAll = dataStore.get('test', {
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var getAll = dataStore.get(schemas.TestSchema.collectionName, {
           sort: {
             createdAt: -1
           }
@@ -504,13 +584,13 @@ describe('models.DataStore', function () {
           expect(getAll).to.eventually.have.length(3),
           expect(getAll.then(function (results) {
             return results[0].name;
-          })).to.eventually.equal(testObjects[2].name)
+          })).to.eventually.equal(modelData[2].name)
         ]);
       });
     });
 
     it ('offsets and limits the records if needed', function () {
-      var testObjects = [
+      var modelData = [
         {
           name: 'record1', createdAt: new Date(2011, 1, 3)
         },
@@ -522,27 +602,32 @@ describe('models.DataStore', function () {
         }
       ];
 
+      // Store the data directly.
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME,
-          function () {
-            var connection = mongoose.connection;
-            var connectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-            connectedModel.create(testObjects, (function (err, result) {
-              if (err) {
-                throw err;
-              }
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
 
-              mongoose.disconnect();
+          Schema.create(modelData, function (err, result) {
+            if (err) {
+              throw err;
+            }
+
+            db.close(function () {
               resolve(result);
-            }));
-          }
-        );
+            });
+          });
+        });
       })
       .then(function () {
-        var getAll = dataStore.get('test', {
-          limit: 1, offset: 1, sort: {
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var getAll = dataStore.get(schemas.TestSchema.collectionName, {
+          limit: 1,
+          offset: 1,
+          sort: {
             createdAt: 1
           }
         });
@@ -552,34 +637,38 @@ describe('models.DataStore', function () {
           expect(getAll).to.eventually.have.length(1),
           expect(getAll.then(function (results) {
             return results[0].name;
-          })).to.eventually.equal(testObjects[1].name)
+          })).to.eventually.equal(modelData[1].name)
         ]);
       });
     });
 
     it ('gets by ID (array)', function () {
-      var testObject = {
+      var modelData = {
         name: 'testName'
       };
 
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var ConnectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-          var instance = new ConnectedModel(testObject);
-          instance.save(function (err, result) {
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
+
+          var model = new Schema(modelData);
+          model.save(function (err, result) {
             if (err) {
               throw err;
             }
 
-            mongoose.disconnect();
-            resolve(result);
+            db.close(function () {
+              resolve(result);
+            });
           });
         });
       }).then(function (newInstance) {
-        var get = dataStore.get('test', {
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var get = dataStore.get(schemas.TestSchema.collectionName, {
           criteria: {
             _id: newInstance._id
           }
@@ -590,90 +679,106 @@ describe('models.DataStore', function () {
           expect(get).to.eventually.have.length(1),
           expect(get.then(function (results) {
             return results[0].name;
-          })).to.eventually.equal(testObject.name)
+          })).to.eventually.equal(modelData.name)
         ]);
       });
     });
 
     it ('gets by ID (convenience method, single object)', function () {
-      var testObject = {
+      var modelData = {
         name: 'testName'
       };
 
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var ConnectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-          var instance = new ConnectedModel(testObject);
-          instance.save(function (err, result) {
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
+
+          var model = new Schema(modelData);
+          model.save(function (err, result) {
             if (err) {
               throw err;
             }
 
-            mongoose.disconnect();
-            resolve(result);
-          });
-        });
-      }).then(function (newInstance) {
-        var getById = dataStore.getById('test', newInstance._id)
-          .then(function (result) {
-            return result.name;
-          });
-
-        return expect(getById).to.eventually.equal(testObject.name);
-      });
-    });
-
-    it ('populates a record', function () {
-      var testObject = {
-        name: 'test'
-      };
-
-      var testReferrerObject = {
-        name: 'test referrer'
-      };
-
-      return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var ConnectedModel = models.test.factory(connection);
-
-          var instance = new ConnectedModel(testObject);
-          instance.save(function (err, result) {
-            if (err) {
-              throw err;
-            }
-
-            mongoose.disconnect();
-            resolve(result);
-          });
-        });
-      }).then(function (newInstance) {
-        return new Promise(function (resolve, reject) {
-          var mongoose = require('mongoose');
-          mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-            var connection = mongoose.connection;
-            var ConnectedModel = models.testreferrer.factory(connection);
-
-            // Set the test to point to the new instance.
-            testReferrerObject._test = newInstance._id;
-
-            var instance = new ConnectedModel(testReferrerObject);
-            instance.save(function (err, result) {
-              if (err) {
-                throw err;
-              }
-
-              mongoose.disconnect();
+            db.close(function () {
               resolve(result);
             });
           });
         });
+      }).then(function (newInstance) {
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var getById = dataStore
+          .getById(schemas.TestSchema.collectionName, newInstance._id)
+          .then(function (result) {
+            return result.name;
+          });
+
+        return expect(getById).to.eventually.equal(modelData.name);
+      });
+    });
+
+    it ('populates a record', function () {
+      var modelData = {
+        name: 'Test Record'
+      };
+
+      var testReferrerObject = {
+        name: 'Test Record Referrer'
+      };
+
+      // Insert the Test directly.
+      return new Promise(function (resolve, reject) {
+        var mongoose = require('mongoose');
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
+
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
+
+          var model = new Schema(modelData);
+          model.save(function (err, result) {
+            if (err) {
+              throw err;
+            }
+
+            db.close(function () {
+              resolve(result);
+            });
+          });
+        });
+      })
+
+      // Insert the Test Referrer directly, and make it point to Test.
+      .then(function (newInstance) {
+        return new Promise(function (resolve, reject) {
+          var mongoose = require('mongoose');
+          var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
+
+          db.on('open', function () {
+            var Schema = schemas.TestReferrerSchema.factory(db);
+
+            // Set the test to point to the new instance.
+            testReferrerObject._test = newInstance._id;
+
+            var model = new Schema(testReferrerObject);
+            model.save(function (err, result) {
+              if (err) {
+                throw err;
+              }
+
+              db.close(function () {
+                resolve(result);
+              });
+            });
+          });
+        });
       }).then(function () {
-        var get = dataStore.get('testreferrer', {
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var get = dataStore.get(schemas.TestReferrerSchema.collectionName, {
           populate: '_test'
         });
 
@@ -682,7 +787,7 @@ describe('models.DataStore', function () {
           expect(get).to.eventually.have.length(1),
           expect(get.then(function (results) {
             return results[0]._test.name;
-          })).to.eventually.equal(testObject.name)
+          })).to.eventually.equal(modelData.name)
         ]);
       });
     });
@@ -690,14 +795,6 @@ describe('models.DataStore', function () {
 
   // Delete.
   describe('DataStore.delete', function () {
-    // Set up the data store before each run.
-    beforeEach (function () {
-      dataStore.configure({
-        store: STORE_NAME,
-        models: models
-      });
-    });
-
     // Delete the test store contents directly each time.
     afterEach(function (done) {
       let mongoose = require('mongoose');
@@ -709,61 +806,45 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects when a non-existent ID is given', function () {
-      var testObject = {
-        name: 'testName'
-      };
-
-      return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var ConnectedModel = models.test.factory(connection);
-
-          var instance = new ConnectedModel(testObject);
-          instance.save(function (err, result) {
-            if (err) {
-              throw err;
-            }
-
-            mongoose.disconnect();
-            resolve(result);
-          });
-        });
-      }).then(function (newInstance) {
-        var ID = '56695059b5333b7d7573ffbf';
-        return expect(dataStore.delete('test', ID)).to.eventually.rejectedWith(
-          Error, 'Unable to find object with ID: ' + ID
-        );
-      });
+      var ID = '56695059b5333b7d7573ffbf';
+      var dataStore = new DataStore(STORE_NAME, schemas);
+      var del = dataStore.delete(schemas.TestSchema.collectionName, ID);
+      return expect(del).to.eventually.rejectedWith(
+        Error, 'Unable to find object with ID: ' + ID
+      );
     });
 
     it ('deletes an object', function () {
-      var testObject = {
+      var modelData = {
         name: 'testName'
       };
 
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME, function () {
-          var connection = mongoose.connection;
-          var ConnectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-          var instance = new ConnectedModel(testObject);
-          instance.save(function (err, result) {
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
+
+          var model = new Schema(modelData);
+          model.save(function (err, result) {
             if (err) {
               throw err;
             }
 
-            mongoose.disconnect();
-            resolve(result);
+            db.close(function () {
+              resolve(result);
+            });
           });
         });
       }).then(function (newInstance) {
+        var dataStore = new DataStore(STORE_NAME, schemas);
         var deleteAndGet =
           dataStore
-            .delete('test', newInstance._id)
+            .delete(schemas.TestSchema.collectionName, newInstance._id)
             .then(function () {
-              return dataStore.get('test');
+              return dataStore.get(schemas.TestSchema.collectionName);
             });
 
         return Promise.all([
@@ -776,14 +857,6 @@ describe('models.DataStore', function () {
 
   // Aggregate
   describe('DataStore.aggregate', function () {
-    // Set up the data store before each run.
-    beforeEach (function () {
-      dataStore.configure({
-        store: STORE_NAME,
-        models: models
-      });
-    });
-
     // Delete the test store contents directly each time.
     afterEach(function (done) {
       let mongoose = require('mongoose');
@@ -795,11 +868,12 @@ describe('models.DataStore', function () {
     });
 
     it ('aggregates data', function () {
-      var testObjects = [];
+      var modelData = [];
       var size = 100;
 
+      // Create 100 records.
       for (var i = 0; i < size; i++) {
-        testObjects.push({
+        modelData.push({
           name: ('record' + i),
           createdAt: new Date(2015, (i % 12), 1),
           value: (i + 1)
@@ -808,21 +882,22 @@ describe('models.DataStore', function () {
 
       return new Promise(function (resolve, reject) {
         var mongoose = require('mongoose');
-        mongoose.connect('mongodb://localhost/' + STORE_NAME,
-          function () {
-            var connection = mongoose.connection;
-            var connectedModel = models.test.factory(connection);
+        var db = mongoose
+                .createConnection('mongodb://localhost/' + STORE_NAME);
 
-            connectedModel.create(testObjects, (function (err, result) {
-              if (err) {
-                throw err;
-              }
+        db.on('open', function () {
+          var Schema = schemas.TestSchema.factory(db);
 
-              mongoose.disconnect();
+          Schema.create(modelData, function (err, result) {
+            if (err) {
+              throw err;
+            }
+
+            db.close(function () {
               resolve(result);
-            }));
-          }
-        );
+            });
+          });
+        });
       })
       .then(function () {
         var steps = [{
@@ -836,12 +911,14 @@ describe('models.DataStore', function () {
 
         }];
 
-        var aggregate = dataStore.aggregate('test', steps);
+        var dataStore = new DataStore(STORE_NAME, schemas);
+        var aggregation = dataStore.aggregate(
+            schemas.TestSchema.collectionName, steps);
 
         return Promise.all([
-          expect(aggregate).to.eventually.be.instanceof(Array),
-          expect(aggregate).to.eventually.have.length(1),
-          expect(aggregate.then(function (results) {
+          expect(aggregation).to.eventually.be.instanceof(Array),
+          expect(aggregation).to.eventually.have.length(1),
+          expect(aggregation.then(function (results) {
             return results[0].avgValue;
           })).to.eventually.equal(50.5)
         ]);

@@ -17,17 +17,32 @@
 'use strict';
 
 let mongoose = require('mongoose');
-let Schema = mongoose.Schema;
+let Schema = require('./schema');
 
-let schema = Schema({
-  name: { type: String, required: true, unique: true },
-  value: { type: Number },
-  createdAt: { type: Date }
-}, { autoIndex: false });
-
-module.exports = {
-  name: 'test',
-  factory: function (connection) {
-    return connection.model('test', schema)
+class TestSchema extends Schema {
+  get collectionName () {
+    return 'TestSchema';
   }
-};
+
+  get schema () {
+    let mongooseSchema = mongoose.Schema;
+
+    return mongooseSchema({
+      name: {
+        type: String,
+        required: true,
+        unique: true
+      },
+      value: {
+        type: Number
+      },
+      createdAt: {
+        type: Date
+      }
+    }, {
+      autoIndex: false
+    });
+  }
+}
+
+module.exports = new TestSchema();
