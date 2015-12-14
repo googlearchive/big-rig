@@ -172,12 +172,12 @@ class DataStore {
       _id: id
     };
 
-    return this.get(type, opts).then(rooms => {
-      if (rooms.length < 1) {
+    return this.get(type, opts).then(results => {
+      if (results.length < 1) {
         return null;
       }
 
-      return rooms[0];
+      return results[0];
     });
   }
 
