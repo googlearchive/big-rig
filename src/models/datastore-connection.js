@@ -34,7 +34,7 @@ class DataStoreConnection {
         throw err;
       });
       db.on('open', () => {
-        // Update all the models to use this connection.
+        // Update all the schemas to use this connection.
         SchemaHelper.connectAll(db);
         resolve(db);
       });
@@ -42,7 +42,7 @@ class DataStoreConnection {
   }
 
   static returnToPool (db) {
-    // Remove all connected instances of the models.
+    // Remove all connected instances of the schemas.
     SchemaHelper.disconnectAll();
     return new Promise((resolve, reject) => {
       db.close( () => {
