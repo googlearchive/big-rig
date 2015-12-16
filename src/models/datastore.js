@@ -136,6 +136,15 @@ class DataStore {
       return Promise.reject(new Error('put() cannot take an existing schema.'));
     }
 
+    var dataKeys = Object.keys(data);
+    var filteredKeys = dataKeys.filter(function (keys) {
+      return keys.length > 1;
+    });
+    if (filteredKeys.length !== dataKeys.length) {
+      return Promise.reject(new Error('put() does not allow any empty keys ' +
+        'on the data object'));
+    }
+
     return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
         // Assume it's a plain insert action.
