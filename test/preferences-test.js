@@ -28,7 +28,7 @@ var ncp = require('ncp');
 var testOutputPath = path.join(__dirname, './test-output/');
 var Preferences = require('../src/models/preferences');
 
-describe('models.Preferences', function() {
+describe('models.Preferences', function () {
   var VALID_NEW_FILEPATH = path.join(testOutputPath, '/new-preferences/new-preferences.json');
   var VALID_EXISTING_FILEPATH = path.join(testOutputPath, '/existing-preferences.json');
 
@@ -42,190 +42,190 @@ describe('models.Preferences', function() {
    * Since preferences writes new values and value changes to file
    * we need to copy over a new set of data for each test return
    */
-  beforeEach(function(done) {
+  beforeEach(function (done) {
     ncp(path.join(__dirname, '/data/preferences/'), testOutputPath,
-      function(err) {
+      function (err) {
         done();
       });
   });
 
-  afterEach(function(done) {
+  afterEach(function (done) {
     rimraf(testOutputPath, done);
   });
 
-  describe('new Preferences()', function() {
+  describe('new Preferences()', function () {
     var INVALID_NO_FILENAME_FILEPATH = path.join(testOutputPath, '/preferences/no-filename/');
 
-    it ('should throw an error due to no parameters', function() {
+    it ('should throw an error due to no parameters', function () {
       expect(() => {
         new Preferences();
       }).to.throw(Error);
     });
 
-    it ('should throw an error due to parameters being null', function() {
+    it ('should throw an error due to parameters being null', function () {
       expect(() => {
         new Preferences(null);
       }).to.throw(Error);
     });
 
-    it ('should throw an error due to parameter being an empty string', function() {
+    it ('should throw an error due to parameter being an empty string', function () {
       expect(() => {
         new Preferences('');
       }).to.throw(Error);
     });
 
-    it ('should throw an error due to passing in a filepath with no filename', function() {
+    it ('should throw an error due to passing in a filepath with no filename', function () {
       expect(() => {
         new Preferences(INVALID_NO_FILENAME_FILEPATH);
       }).to.throw(Error);
     });
 
     // Constructor wtih filepath that doesn't exist
-    it ('should not throw an error for a new filepath', function() {
+    it ('should not throw an error for a new filepath', function () {
       expect(() => {
         new Preferences(VALID_NEW_FILEPATH);
       }).to.not.throw(Error);
     });
 
     // Constructor with filepath that already exists
-    it ('should not throw an error for an existing filepath', function() {
+    it ('should not throw an error for an existing filepath', function () {
       expect(() => {
         new Preferences(VALID_EXISTING_FILEPATH);
       }).to.not.throw(Error);
     });
   });
 
-  describe('Preferences.get()', function() {
-    it ('should throw an error for no parameters', function(done) {
+  describe('Preferences.get()', function () {
+    it ('should throw an error for no parameters', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).get()
-      .then(function() {
+      .then(function () {
         done(new Error());
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done();
       });
     });
 
-    it ('should throw an error for null parameter', function(done) {
+    it ('should throw an error for null parameter', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).get(null)
-      .then(function() {
+      .then(function () {
         done(new Error());
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done();
       });
     });
 
-    it ('should throw an error for empty string parameter', function(done) {
+    it ('should throw an error for empty string parameter', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).get('')
-      .then(function() {
+      .then(function () {
         done(new Error());
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done();
       });
     });
 
-    it ('should return null for a new preferences file requesting a new key', function(done) {
+    it ('should return null for a new preferences file requesting a new key', function (done) {
       new Preferences(VALID_NEW_FILEPATH).get(VALID_NEW_KEY)
-      .then(function(value) {
+      .then(function (value) {
         expect(value).to.equal(null);
         done();
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done(new Error(err));
       });
     });
 
-    it ('should return null for existing preferences file with a new key', function(done) {
+    it ('should return null for existing preferences file with a new key', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).get(VALID_NEW_KEY)
-      .then(function(value) {
+      .then(function (value) {
         expect(value).to.equal(null);
         done();
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done(new Error(err));
       });
     });
 
-    it ('should return the existing value for the existing key in the existing preferences file', function(done) {
+    it ('should return the existing value for the existing key in the existing preferences file', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).get(VALID_EXISTING_KEY)
-      .then(function(value) {
+      .then(function (value) {
         expect(value).to.equal(EXISTING_VALUE);
         done();
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done(new Error(err));
       });
     });
   });
 
-  describe('Preferences.set()', function() {
-    it ('should throw an error for no parameters', function(done) {
+  describe('Preferences.set()', function () {
+    it ('should throw an error for no parameters', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).set()
-      .then(function() {
+      .then(function () {
         done(new Error());
       })
-      .catch(function() {
+      .catch(function () {
         done();
       });
     });
 
-    it ('should throw an error for null parameters', function(done) {
+    it ('should throw an error for null parameters', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).set(null, null)
-      .then(function() {
+      .then(function () {
         done(new Error());
       })
-      .catch(function() {
+      .catch(function () {
         done();
       });
     });
 
-    it ('should throw an error for empty string for key parameter', function(done) {
+    it ('should throw an error for empty string for key parameter', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).set(null, VALID_NEW_VALUE)
-      .then(function() {
+      .then(function () {
         done(new Error());
       })
-      .catch(function() {
+      .catch(function () {
         done();
       });
     });
 
-    it ('should create new folder and should write new value to new file', function(done) {
+    it ('should create new folder and should write new value to new file', function (done) {
       new Preferences(VALID_NEW_FILEPATH).set(VALID_NEW_KEY, VALID_NEW_VALUE)
-      .then(function() {
+      .then(function () {
         var fileContents = fs.readFileSync(VALID_NEW_FILEPATH);
         var preferences = JSON.parse(fileContents);
         expect(preferences[VALID_NEW_KEY]).to.equal(VALID_NEW_VALUE);
         done();
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done(new Error(err));
       });
     });
 
-    it ('should assign to new value to existing preferences file', function(done) {
+    it ('should assign to new value to existing preferences file', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).set(VALID_NEW_KEY, VALID_NEW_VALUE)
-      .then(function() {
+      .then(function () {
         var fileContents = fs.readFileSync(VALID_EXISTING_FILEPATH);
         var preferences = JSON.parse(fileContents);
         expect(preferences[VALID_NEW_KEY]).to.equal(VALID_NEW_VALUE);
         done();
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done(new Error(err));
       });
     });
 
-    it ('should assign to new value to existing key to existing preferences file', function(done) {
+    it ('should assign to new value to existing key to existing preferences file', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).set(VALID_EXISTING_KEY, VALID_NEW_VALUE)
-      .then(function() {
+      .then(function () {
         var fileContents = fs.readFileSync(VALID_EXISTING_FILEPATH);
         var preferences = JSON.parse(fileContents);
         expect(preferences[VALID_EXISTING_KEY]).to.equal(VALID_NEW_VALUE);
         done();
       })
-      .catch(function(err) {
+      .catch(function (err) {
         done(new Error(err));
       });
     });

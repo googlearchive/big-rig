@@ -8,4 +8,4 @@ cache:
 install:
 - npm install -g gulp mocha eslint
 - npm install
-- eslint ./src/**/*.js
+- eslint ./**/*.js --quiet
