@@ -99,7 +99,7 @@ describe('models.DataStore', function () {
           modelData);
 
       return expect(put).to.eventually.be.rejectedWith(
-        'Cannot call setValue on the root object'
+        'put() does not allow any empty keys on the data object'
       );
     });
 

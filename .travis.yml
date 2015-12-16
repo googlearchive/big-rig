@@ -1,11 +1,13 @@
 sudo: false
 language: node_js
 node_js:
-- '4.2'
+  - '4.2'
+services:
+  - mongodb
 cache:
   directories:
   - node_modules
 install:
 - npm install -g gulp mocha eslint
 - npm install
-- eslint ./src/**/*.js
+- eslint ./**/*.js --quiet

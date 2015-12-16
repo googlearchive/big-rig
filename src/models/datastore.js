@@ -136,6 +136,11 @@ class DataStore {
       return Promise.reject(new Error('put() cannot take an existing schema.'));
     }
 
+    if (typeof data[''] !== 'undefined') {
+      return Promise.reject(new Error('put() does not allow any empty keys ' +
+        'on the data object'));
+    }
+
     return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
         // Assume it's a plain insert action.
@@ -223,7 +228,7 @@ class DataStore {
     });
   }
 
-  delete (type, id) {
+  delete(type, id) {
     return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
         // Formulated this way so that schema hooks fire.
