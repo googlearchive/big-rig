@@ -18,6 +18,7 @@
 
 let SchemaHelper = require('../helpers/schema-helper');
 let DataStoreConnection = require('./datastore-connection');
+let schemaLoader = require('./schema-loader');
 
 /**
  * Acts as a wrapper around MongoDB to make manipulation of connections, objects
@@ -26,14 +27,16 @@ let DataStoreConnection = require('./datastore-connection');
  */
 class DataStore {
 
-  constructor (storeName, schemaData) {
+  constructor (storeName, schemaPath) {
     if (typeof storeName === 'undefined' || storeName === null) {
       throw new Error('Store name must be provided.');
     }
 
-    if (typeof schemaData === 'undefined' || schemaData === null) {
-      throw new Error('Schema data must be provided.');
+    if (typeof schemaPath === 'undefined' || schemaPath === null) {
+      throw new Error('Schema path must be defined.');
     }
+
+    let schemaData = schemaLoader.getSchemas(schemaPath);
 
     this.storeName = storeName;
     SchemaHelper.schemaData = schemaData;

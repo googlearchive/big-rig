@@ -8,8 +8,12 @@ var chaiAsPromised = require('chai-as-promised');
 
 // DataStore stuff.
 var DataStore = require('../src/models/datastore');
-var schemas = require('./data/schemas/schemas');
+let schemaLoader = require('../src/models/schema-loader');
+
+var TEST_SCHEMA_PATH = '/test/data/schemas/';
 var STORE_NAME = 'TestStore';
+
+var schemas = schemaLoader.getSchemas(TEST_SCHEMA_PATH);
 
 chai.use(chaiAsPromised);
 
@@ -40,7 +44,7 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if no type is given', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var put = dataStore.put(undefined, {});
 
       return expect(put).to.eventually.be.rejectedWith(
@@ -49,7 +53,7 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if unknown type is given', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var put = dataStore.put('person', {});
 
       return expect(put).to.eventually.be.rejectedWith(
@@ -58,7 +62,7 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if no data is given', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var put = dataStore.put(schemas.TestSchema.collectionName, undefined);
 
       return expect(put).to.eventually.be.rejectedWith(
@@ -67,7 +71,7 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if data is not an object (requires)', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var put = dataStore.put(schemas.TestNoRequireSchema.collectionName, 1);
 
       return expect(put).to.eventually.be.rejectedWith(
@@ -76,7 +80,7 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if data is an array with no objects', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var put = dataStore.put(schemas.TestNoRequireSchema.collectionName, [1, {
         name: 'modelData'
       }]);
@@ -94,7 +98,7 @@ describe('models.DataStore', function () {
       // This attempts to write to the root object, causing MongoDB to fail.
       modelData[''] = '';
 
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var put = dataStore.put(schemas.TestNoRequireSchema.collectionName,
           modelData);
 
@@ -130,7 +134,7 @@ describe('models.DataStore', function () {
         });
       }).then(function (newInstance) {
         newInstance.name = 'testNameUpdated';
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var put = dataStore.put(schemas.TestSchema.collectionName, newInstance);
 
         return expect(put).to.be.rejectedWith(
@@ -140,7 +144,7 @@ describe('models.DataStore', function () {
     });
 
     it ('creates a new document', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var modelData = {
         name: 'testName'
       };
@@ -206,7 +210,7 @@ describe('models.DataStore', function () {
       .then(function (newInstance) {
         originalInstance = newInstance;
 
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         return dataStore.put(schemas.TestSchema.collectionName, {
           name: 'testNameUpdated'
         }, newInstance._id);
@@ -319,7 +323,7 @@ describe('models.DataStore', function () {
       // Update the referring test to point to the Alt Test,
       // using the abstraction.
       .then(function (testRefObject) {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
 
         return dataStore.put(schemas.TestReferrerSchema.collectionName, {
           _test: insertedInstances[1]._id
@@ -372,7 +376,7 @@ describe('models.DataStore', function () {
         }
       ];
 
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
 
       return dataStore.put(schemas.TestSchema.collectionName, modelData)
         .then(function () {
@@ -423,7 +427,7 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if no type is given', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
 
       return expect(dataStore.get()).to.eventually.be.rejectedWith(
         Error, 'Schema type not provided.'
@@ -431,7 +435,7 @@ describe('models.DataStore', function () {
     });
 
     it ('returns an empty array when there are no records', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var getAll = dataStore.get(schemas.TestSchema.collectionName);
 
       return Promise.all([
@@ -441,7 +445,7 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects when given a garbage query', function () {
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var getAll = dataStore.get('wobblejobble');
 
       return expect(getAll).to.eventually.be.rejectedWith(
@@ -474,7 +478,7 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function (newInstance) {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var getAll = dataStore.get(schemas.TestSchema.collectionName);
 
         return Promise.all([
@@ -521,7 +525,7 @@ describe('models.DataStore', function () {
         });
       })
       .then(function () {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var getAll = dataStore.get(schemas.TestSchema.collectionName, {
           sort: {
             createdAt: 1
@@ -572,7 +576,7 @@ describe('models.DataStore', function () {
         });
       })
       .then(function () {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var getAll = dataStore.get(schemas.TestSchema.collectionName, {
           sort: {
             createdAt: -1
@@ -623,7 +627,7 @@ describe('models.DataStore', function () {
         });
       })
       .then(function () {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var getAll = dataStore.get(schemas.TestSchema.collectionName, {
           limit: 1,
           offset: 1,
@@ -667,7 +671,7 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function (newInstance) {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var get = dataStore.get(schemas.TestSchema.collectionName, {
           criteria: {
             _id: newInstance._id
@@ -709,7 +713,7 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function (newInstance) {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var getById = dataStore
           .getById(schemas.TestSchema.collectionName, newInstance._id)
           .then(function (result) {
@@ -777,7 +781,7 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function () {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var get = dataStore.get(schemas.TestReferrerSchema.collectionName, {
           populate: '_test'
         });
@@ -807,7 +811,7 @@ describe('models.DataStore', function () {
 
     it ('rejects when a non-existent ID is given', function () {
       var ID = '56695059b5333b7d7573ffbf';
-      var dataStore = new DataStore(STORE_NAME, schemas);
+      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
       var del = dataStore.delete(schemas.TestSchema.collectionName, ID);
       return expect(del).to.eventually.rejectedWith(
         Error, 'Unable to find object with ID: ' + ID
@@ -839,7 +843,7 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function (newInstance) {
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var deleteAndGet =
           dataStore
             .delete(schemas.TestSchema.collectionName, newInstance._id)
@@ -911,7 +915,7 @@ describe('models.DataStore', function () {
 
         }];
 
-        var dataStore = new DataStore(STORE_NAME, schemas);
+        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         var aggregation = dataStore.aggregate(
             schemas.TestSchema.collectionName, steps);
 
