@@ -17,26 +17,31 @@
 'use strict';
 
 let file = require('file');
+var path = require('path');
+
 let schemas = {};
 
-file.walkSync('./test/data/schemas', (start, dirs, files) => {
-  files.forEach(schemaFile => {
-    if (schemaFile === 'schemas.js' ||
-        schemaFile === 'schema.js' ||
-        !(/.js$/.test(schemaFile))) {
-      return;
+module.exports = {
+  getSchemas: function (filePath) {
+    if (typeof schemas[filePath] !== 'undefined') {
+      return schemas[filePath];
     }
 
-    let schema = require('./' + schemaFile.replace(/.js$/, ''));
+    var fullFilePath = path.join(__dirname, '../../', filePath);
 
-    schemas[schema.collectionName] = {
-      collectionName: schema.collectionName,
-      factory: schema.factory.bind(schema),
-      instance: null
-    };
-  });
-});
+    schemas[filePath] = {};
+    file.walkSync(fullFilePath, (start, dirs, files) => {
+      files.forEach(schemaFile => {
+        let schema = require(fullFilePath + schemaFile.replace(/.js$/, ''));
 
-// console.log(schemas);
+        schemas[filePath][schema.collectionName] = {
+          collectionName: schema.collectionName,
+          factory: schema.factory.bind(schema),
+          instance: null
+        };
+      });
+    });
 
-module.exports = schemas;
+    return schemas[filePath];
+  }
+};

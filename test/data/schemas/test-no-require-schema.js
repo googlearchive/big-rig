@@ -17,7 +17,7 @@
 'use strict';
 
 let mongoose = require('mongoose');
-let Schema = require('./schema');
+let Schema = require('../../../src/models/schema');
 
 class TestNoRequireSchema extends Schema {
   get collectionName () {
