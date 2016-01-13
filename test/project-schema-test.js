@@ -28,10 +28,12 @@ describe('Test Project Schema', () => {
 
   it ('reject if no data is defined', function () {
     var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-    var put = dataStore.put(projectSchema.collectionName, {});
+    var modelData = {
+    };
+    var put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
-      Error, 'Some sort of error?'
+      Error, 'Validation failed'
     );
   });
 
@@ -43,7 +45,7 @@ describe('Test Project Schema', () => {
     var put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
-      Error, 'Some sort of error?'
+      Error, 'Validation failed'
     );
   });
 
@@ -55,7 +57,7 @@ describe('Test Project Schema', () => {
     var put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
-      Error, 'Some sort of error?'
+      Error, 'Validation failed'
     );
   });
   it ('reject if name is undefined', function () {
@@ -66,7 +68,7 @@ describe('Test Project Schema', () => {
     var put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
-      Error, 'Some sort of error?'
+      Error, 'Validation failed'
     );
   });
 });

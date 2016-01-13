@@ -161,7 +161,8 @@ class DataStore {
         // Use upsert to insert instead of update if no record exists.
         // Also using the schema-centric way to ensure any hooks get fired.
         schema.findOneAndUpdate(conditions, data, {
-          upsert: true
+          upsert: true,
+          runValidators: true
         },
           function (err) {
             if (err) {
