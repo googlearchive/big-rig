@@ -146,30 +146,34 @@ class DataStore {
 
     return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
-        // Assume it's a plain insert action.
-        let conditions = data;
-
-        // Unless we have an ID, in which case this is
-        // an update, and we should flatten the search
-        // criteria to just the ID of the existing doc.
+        // If we have an ID this is
+        // an update.
         if (typeof id !== 'undefined') {
-          conditions = {
+          let conditions = {
             _id: id
           };
-        }
 
-        // Use upsert to insert instead of update if no record exists.
-        // Also using the schema-centric way to ensure any hooks get fired.
-        schema.findOneAndUpdate(conditions, data, {
-          upsert: true
-        },
-          function (err) {
+          // Using the schema-centric way to ensure any hooks get fired.
+          schema.findOneAndUpdate(conditions, data, {
+            runValidators: true
+          },
+            function (err) {
+              if (err) {
+                return reject(err);
+              }
+
+              resolve();
+            });
+        } else {
+          // This is a new record (create is essentially an insert)
+          schema.create(data, function (err) {
             if (err) {
               return reject(err);
             }
 
             resolve();
           });
+        }
       });
     });
   }
