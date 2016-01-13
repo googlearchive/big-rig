@@ -33,7 +33,7 @@ describe('Test Project Schema', () => {
     var put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
-      Error, 'Validation failed'
+      Error, 'ProjectSchema validation failed'
     );
   });
 
@@ -45,7 +45,7 @@ describe('Test Project Schema', () => {
     var put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
-      Error, 'Validation failed'
+      Error, 'ProjectSchema validation failed'
     );
   });
 
@@ -57,9 +57,10 @@ describe('Test Project Schema', () => {
     var put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
-      Error, 'Validation failed'
+      Error, 'ProjectSchema validation failed'
     );
   });
+
   it ('reject if name is undefined', function () {
     var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
     var modelData = {
@@ -68,7 +69,17 @@ describe('Test Project Schema', () => {
     var put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
-      Error, 'Validation failed'
+      Error, 'ProjectSchema validation failed'
     );
+  });
+
+  it ('should save project', function () {
+    var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+    var modelData = {
+      name: 'Valid Project Name'
+    };
+    var put = dataStore.put(projectSchema.collectionName, modelData);
+
+    return expect(put).to.eventually.be.fulfilled;
   });
 });
