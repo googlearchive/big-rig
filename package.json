@@ -21,14 +21,11 @@
     "mkdirp": "^0.5.1",
     "mysql": "^2.9.0"
   },
-  "scripts": {
-    "test": "mocha"
-  },
   "repository": "googlechrome/big-rig",
   "bugs": "https://github.com/googlechrome/big-rig/issues",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "mocha"
+    "test": "eslint --config ./.eslintrc ./**/*.js && mocha"
   },
   "bin": {
     "big-rig": "app.js"

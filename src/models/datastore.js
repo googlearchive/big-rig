@@ -235,7 +235,7 @@ class DataStore {
     });
   }
 
-  delete(type, id) {
+  delete (type, id) {
     return this.action_(type, (schema) => {
       return new Promise((resolve, reject) => {
         // Formulated this way so that schema hooks fire.

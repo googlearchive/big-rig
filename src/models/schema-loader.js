@@ -17,7 +17,7 @@
 'use strict';
 
 let file = require('file');
-var path = require('path');
+let path = require('path');
 
 let schemas = {};
 
@@ -27,7 +27,7 @@ module.exports = {
       return schemas[filePath];
     }
 
-    var fullFilePath = path.join(__dirname, '../../', filePath);
+    let fullFilePath = path.join(__dirname, '../../', filePath);
 
     schemas[filePath] = {};
     file.walkSync(fullFilePath, (start, dirs, files) => {

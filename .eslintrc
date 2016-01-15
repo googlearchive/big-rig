@@ -1,5 +1,8 @@
 {
-    "ecmaFeatures": { "modules": true },
+    "ecmaFeatures": {
+      "modules": true,
+      "blockBindings": true
+    },
     "rules": {
         "array-bracket-spacing": 2,
         "block-spacing": [2, "never"],
@@ -44,7 +47,8 @@
         "no-extra-strict": 0,
         "no-reserved-keys": 0,
         "no-space-before-semi": 0,
-        "no-wrap-func": 0
+        "no-wrap-func": 0,
+        "no-var": 2
     },
     "env": {
         "es6": true,
