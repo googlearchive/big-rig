@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-var expect = require('chai').expect;
-var path = require('path');
-var fs = require('fs');
-var rimraf = require('rimraf');
-var ncp = require('ncp');
+'use strict';
+
+let expect = require('chai').expect;
+let path = require('path');
+let fs = require('fs');
+let rimraf = require('rimraf');
+let ncp = require('ncp');
 
 // This is a test and we want descriptions to be useful, if this
 // breaks the max-length, it's ok.
 
 /* eslint-disable max-len */
 
-var testOutputPath = path.join(__dirname, './test-output/');
-var Preferences = require('../src/models/preferences');
+let testOutputPath = path.join(__dirname, './test-output/');
+let Preferences = require('../src/models/preferences');
 
 describe('models.Preferences', function () {
-  var VALID_NEW_FILEPATH = path.join(testOutputPath, '/new-preferences/new-preferences.json');
-  var VALID_EXISTING_FILEPATH = path.join(testOutputPath, '/existing-preferences.json');
+  let VALID_NEW_FILEPATH = path.join(testOutputPath, '/new-preferences/new-preferences.json');
+  let VALID_EXISTING_FILEPATH = path.join(testOutputPath, '/existing-preferences.json');
 
-  var VALID_EXISTING_KEY = 'key1';
-  var EXISTING_VALUE = 'value1';
+  let VALID_EXISTING_KEY = 'key1';
+  let EXISTING_VALUE = 'value1';
 
-  var VALID_NEW_KEY = 'valid-new-key';
-  var VALID_NEW_VALUE = 'valid-new-value';
+  let VALID_NEW_KEY = 'valid-new-key';
+  let VALID_NEW_VALUE = 'valid-new-value';
 
   /**
    * Since preferences writes new values and value changes to file
@@ -54,7 +56,7 @@ describe('models.Preferences', function () {
   });
 
   describe('new Preferences()', function () {
-    var INVALID_NO_FILENAME_FILEPATH = path.join(testOutputPath, '/preferences/no-filename/');
+    let INVALID_NO_FILENAME_FILEPATH = path.join(testOutputPath, '/preferences/no-filename/');
 
     it ('should throw an error due to no parameters', function () {
       expect(() => {
@@ -194,8 +196,8 @@ describe('models.Preferences', function () {
     it ('should create new folder and should write new value to new file', function (done) {
       new Preferences(VALID_NEW_FILEPATH).set(VALID_NEW_KEY, VALID_NEW_VALUE)
       .then(function () {
-        var fileContents = fs.readFileSync(VALID_NEW_FILEPATH);
-        var preferences = JSON.parse(fileContents);
+        let fileContents = fs.readFileSync(VALID_NEW_FILEPATH);
+        let preferences = JSON.parse(fileContents);
         expect(preferences[VALID_NEW_KEY]).to.equal(VALID_NEW_VALUE);
         done();
       })
@@ -207,8 +209,8 @@ describe('models.Preferences', function () {
     it ('should assign to new value to existing preferences file', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).set(VALID_NEW_KEY, VALID_NEW_VALUE)
       .then(function () {
-        var fileContents = fs.readFileSync(VALID_EXISTING_FILEPATH);
-        var preferences = JSON.parse(fileContents);
+        let fileContents = fs.readFileSync(VALID_EXISTING_FILEPATH);
+        let preferences = JSON.parse(fileContents);
         expect(preferences[VALID_NEW_KEY]).to.equal(VALID_NEW_VALUE);
         done();
       })
@@ -220,8 +222,8 @@ describe('models.Preferences', function () {
     it ('should assign to new value to existing key to existing preferences file', function (done) {
       new Preferences(VALID_EXISTING_FILEPATH).set(VALID_EXISTING_KEY, VALID_NEW_VALUE)
       .then(function () {
-        var fileContents = fs.readFileSync(VALID_EXISTING_FILEPATH);
-        var preferences = JSON.parse(fileContents);
+        let fileContents = fs.readFileSync(VALID_EXISTING_FILEPATH);
+        let preferences = JSON.parse(fileContents);
         expect(preferences[VALID_EXISTING_KEY]).to.equal(VALID_NEW_VALUE);
         done();
       })

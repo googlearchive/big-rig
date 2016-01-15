@@ -10,4 +10,3 @@ cache:
 install:
 - npm install -g gulp mocha eslint
 - npm install
-- eslint ./**/*.js --quiet

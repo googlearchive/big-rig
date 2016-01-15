@@ -1,19 +1,35 @@
+/**
+ * Copyright 2015 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 'use strict';
 
 /* global describe, it */
 
-var chai = require('chai');
-var expect = chai.expect;
-var chaiAsPromised = require('chai-as-promised');
+let chai = require('chai');
+let expect = chai.expect;
+let chaiAsPromised = require('chai-as-promised');
 
 // DataStore stuff.
-var DataStore = require('../src/models/datastore');
+let DataStore = require('../src/models/datastore');
 let schemaLoader = require('../src/models/schema-loader');
 
-var TEST_SCHEMA_PATH = '/test/data/schemas/';
-var STORE_NAME = 'TestStore';
+let TEST_SCHEMA_PATH = '/test/data/schemas/';
+let STORE_NAME = 'TestStore';
 
-var schemas = schemaLoader.getSchemas(TEST_SCHEMA_PATH);
+let schemas = schemaLoader.getSchemas(TEST_SCHEMA_PATH);
 
 chai.use(chaiAsPromised);
 
@@ -44,8 +60,8 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if no type is given', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var put = dataStore.put(undefined, {});
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let put = dataStore.put(undefined, {});
 
       return expect(put).to.eventually.be.rejectedWith(
         Error, 'put() requires type as a string.'
@@ -53,8 +69,8 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if unknown type is given', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var put = dataStore.put('person', {});
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let put = dataStore.put('person', {});
 
       return expect(put).to.eventually.be.rejectedWith(
         Error, 'Unknown schema type provided: person.'
@@ -62,8 +78,8 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if no data is given', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var put = dataStore.put(schemas.TestSchema.collectionName, undefined);
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let put = dataStore.put(schemas.TestSchema.collectionName, undefined);
 
       return expect(put).to.eventually.be.rejectedWith(
         Error, 'put() requires data as an object.'
@@ -71,8 +87,8 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if data is not an object (requires)', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var put = dataStore.put(schemas.TestNoRequireSchema.collectionName, 1);
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let put = dataStore.put(schemas.TestNoRequireSchema.collectionName, 1);
 
       return expect(put).to.eventually.be.rejectedWith(
         Error, 'put() requires data as an object.'
@@ -80,8 +96,8 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if data is an array with no objects', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var put = dataStore.put(schemas.TestNoRequireSchema.collectionName, [1, {
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let put = dataStore.put(schemas.TestNoRequireSchema.collectionName, [1, {
         name: 'modelData'
       }]);
 
@@ -91,15 +107,15 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if data contains an empty property', function () {
-      var modelData = {
+      let modelData = {
         name: 'Test Record'
       };
 
       // This attempts to write to the root object, causing MongoDB to fail.
       modelData[''] = '';
 
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var put = dataStore.put(schemas.TestNoRequireSchema.collectionName,
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let put = dataStore.put(schemas.TestNoRequireSchema.collectionName,
           modelData);
 
       return expect(put).to.eventually.be.rejectedWith(
@@ -108,19 +124,19 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if given an existing model', function () {
-      var modelData = {
+      let modelData = {
         name: 'Test Record'
       };
 
       // Write the content to the MongoDB database without the abstraction.
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
             .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
-          var model = new Schema(modelData);
+          let Schema = schemas.TestSchema.factory(db);
+          let model = new Schema(modelData);
 
           model.save(function (err, result) {
             if (err) {
@@ -134,8 +150,8 @@ describe('models.DataStore', function () {
         });
       }).then(function (newInstance) {
         newInstance.name = 'testNameUpdated';
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var put = dataStore.put(schemas.TestSchema.collectionName, newInstance);
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let put = dataStore.put(schemas.TestSchema.collectionName, newInstance);
 
         return expect(put).to.be.rejectedWith(
           Error, 'put() cannot take an existing schema.'
@@ -144,8 +160,8 @@ describe('models.DataStore', function () {
     });
 
     it ('creates a new document', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var modelData = {
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let modelData = {
         name: 'testName'
       };
 
@@ -154,13 +170,13 @@ describe('models.DataStore', function () {
           // Check that the data stored correctly by going to the database
           // directly and pulling the record.
           return new Promise(function (resolve, reject) {
-            var mongoose = require('mongoose');
-            var db = mongoose
+            let mongoose = require('mongoose');
+            let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
             db.on('open', function () {
               // Instantiate the schema for the connection.
-              var model = schemas.TestSchema.factory(db);
+              let model = schemas.TestSchema.factory(db);
 
               model.find(modelData, function (err, result) {
                 if (err) {
@@ -179,20 +195,20 @@ describe('models.DataStore', function () {
     });
 
     it ('updates an existing document\'s simple property', function () {
-      var modelData = {
+      let modelData = {
         name: 'testName'
       };
-      var originalInstance;
+      let originalInstance;
 
       // First store the data directly.
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
-          var model = new Schema(modelData);
+          let Schema = schemas.TestSchema.factory(db);
+          let model = new Schema(modelData);
 
           model.save(function (err, result) {
             if (err) {
@@ -210,7 +226,7 @@ describe('models.DataStore', function () {
       .then(function (newInstance) {
         originalInstance = newInstance;
 
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
         return dataStore.put(schemas.TestSchema.collectionName, {
           name: 'testNameUpdated'
         }, newInstance._id);
@@ -219,12 +235,12 @@ describe('models.DataStore', function () {
       // Go direct to pull it a second time and check that it's updated.
       .then(function () {
         return new Promise(function (resolve, reject) {
-          var mongoose = require('mongoose');
-          var db = mongoose
+          let mongoose = require('mongoose');
+          let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
           db.on('open', function () {
-            var schema = schemas.TestSchema.factory(db);
+            let schema = schemas.TestSchema.factory(db);
 
             schema.find({
               name: 'testNameUpdated'
@@ -244,8 +260,8 @@ describe('models.DataStore', function () {
       // Check that the values match.
       .then(function (updatedInstance) {
         // Check this is still the same object.
-        var updatedInstanceID = updatedInstance._id.toString();
-        var originalInstanceID = originalInstance._id.toString();
+        let updatedInstanceID = updatedInstance._id.toString();
+        let originalInstanceID = originalInstance._id.toString();
 
         expect(updatedInstanceID).to.equal(originalInstanceID);
 
@@ -255,26 +271,26 @@ describe('models.DataStore', function () {
     });
 
     it ('updates an existing document\'s populated property', function () {
-      var modelData = {
+      let modelData = {
         name: 'Test Record'
       };
-      var altModelData = {
+      let altModelData = {
         name: 'Alternate Test Record'
       };
-      var testReferrerObject = {
+      let testReferrerObject = {
         name: 'Record that refers to Test or Alt Test'
       };
 
-      var insertedInstances;
+      let insertedInstances;
 
       // Start by inserting the Test and Alt Test records directly.
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
           // Store the test and alt objects.
           Schema.create([modelData, altModelData],
@@ -295,17 +311,17 @@ describe('models.DataStore', function () {
         insertedInstances = newInstances;
 
         return new Promise(function (resolve, reject) {
-          var mongoose = require('mongoose');
-          var db = mongoose
+          let mongoose = require('mongoose');
+          let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
           db.on('open', function () {
-            var Schema = schemas.TestReferrerSchema.factory(db);
+            let Schema = schemas.TestReferrerSchema.factory(db);
 
             // Set the referrer to point to  Test.
             testReferrerObject._test = insertedInstances[0]._id;
 
-            var model = new Schema(testReferrerObject);
+            let model = new Schema(testReferrerObject);
             model.save(function (err, result) {
               if (err) {
                 throw err;
@@ -323,7 +339,7 @@ describe('models.DataStore', function () {
       // Update the referring test to point to the Alt Test,
       // using the abstraction.
       .then(function (testRefObject) {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
 
         return dataStore.put(schemas.TestReferrerSchema.collectionName, {
           _test: insertedInstances[1]._id
@@ -333,8 +349,8 @@ describe('models.DataStore', function () {
       // Now go direct and check that the populated version points to Alt Test.
       .then(function () {
         return new Promise(function (resolve, reject) {
-          var mongoose = require('mongoose');
-          var db = mongoose
+          let mongoose = require('mongoose');
+          let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
           db.on('open', function () {
@@ -342,7 +358,7 @@ describe('models.DataStore', function () {
             // populated as part of the query.
             schemas.TestSchema.factory(db);
 
-            var Schema = schemas.TestReferrerSchema.factory(db);
+            let Schema = schemas.TestReferrerSchema.factory(db);
 
             Schema
               .find()
@@ -364,7 +380,7 @@ describe('models.DataStore', function () {
     });
 
     it ('can bulk insert multiple records', function () {
-      var modelData = [
+      let modelData = [
         {
           name: 'record1', createdAt: new Date(2011, 1, 3)
         },
@@ -376,17 +392,17 @@ describe('models.DataStore', function () {
         }
       ];
 
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
 
       return dataStore.put(schemas.TestSchema.collectionName, modelData)
         .then(function () {
           return new Promise(function (resolve, reject) {
-            var mongoose = require('mongoose');
-            var db = mongoose
+            let mongoose = require('mongoose');
+            let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
             db.on('open', function () {
-              var model = schemas.TestSchema.factory(db);
+              let model = schemas.TestSchema.factory(db);
 
               model.find(function (err, results) {
                 if (err) {
@@ -427,7 +443,7 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects if no type is given', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
 
       return expect(dataStore.get()).to.eventually.be.rejectedWith(
         Error, 'Schema type not provided.'
@@ -435,8 +451,8 @@ describe('models.DataStore', function () {
     });
 
     it ('returns an empty array when there are no records', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var getAll = dataStore.get(schemas.TestSchema.collectionName);
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let getAll = dataStore.get(schemas.TestSchema.collectionName);
 
       return Promise.all([
         expect(getAll).to.eventually.be.instanceof(Array),
@@ -445,8 +461,8 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects when given a garbage query', function () {
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var getAll = dataStore.get('wobblejobble');
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let getAll = dataStore.get('wobblejobble');
 
       return expect(getAll).to.eventually.be.rejectedWith(
         Error, 'Unknown schema type provided: wobblejobble'
@@ -454,19 +470,19 @@ describe('models.DataStore', function () {
     });
 
     it ('returns an array of records', function () {
-      var modelData = {
+      let modelData = {
         name: 'Test Record'
       };
 
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
-          var model = new Schema(modelData);
+          let model = new Schema(modelData);
           model.save(function (err, result) {
             if (err) {
               throw err;
@@ -478,8 +494,8 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function (newInstance) {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var getAll = dataStore.get(schemas.TestSchema.collectionName);
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let getAll = dataStore.get(schemas.TestSchema.collectionName);
 
         return Promise.all([
           expect(getAll).to.eventually.be.instanceof(Array),
@@ -492,7 +508,7 @@ describe('models.DataStore', function () {
     });
 
     it ('sorts ascending', function () {
-      var modelData = [
+      let modelData = [
         {
           name: 'record1', createdAt: new Date(2011, 1, 3)
         },
@@ -506,12 +522,12 @@ describe('models.DataStore', function () {
 
       // Store the data directly
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
           Schema.create(modelData, function (err, result) {
             if (err) {
@@ -525,8 +541,8 @@ describe('models.DataStore', function () {
         });
       })
       .then(function () {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var getAll = dataStore.get(schemas.TestSchema.collectionName, {
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let getAll = dataStore.get(schemas.TestSchema.collectionName, {
           sort: {
             createdAt: 1
           }
@@ -543,7 +559,7 @@ describe('models.DataStore', function () {
     });
 
     it ('sorts descending', function () {
-      var modelData = [
+      let modelData = [
         {
           name: 'record1', createdAt: new Date(2011, 1, 3)
         },
@@ -557,12 +573,12 @@ describe('models.DataStore', function () {
 
       // Store the data directly.
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
           Schema.create(modelData, function (err, result) {
             if (err) {
@@ -576,8 +592,8 @@ describe('models.DataStore', function () {
         });
       })
       .then(function () {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var getAll = dataStore.get(schemas.TestSchema.collectionName, {
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let getAll = dataStore.get(schemas.TestSchema.collectionName, {
           sort: {
             createdAt: -1
           }
@@ -594,7 +610,7 @@ describe('models.DataStore', function () {
     });
 
     it ('offsets and limits the records if needed', function () {
-      var modelData = [
+      let modelData = [
         {
           name: 'record1', createdAt: new Date(2011, 1, 3)
         },
@@ -608,12 +624,12 @@ describe('models.DataStore', function () {
 
       // Store the data directly.
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
           Schema.create(modelData, function (err, result) {
             if (err) {
@@ -627,8 +643,8 @@ describe('models.DataStore', function () {
         });
       })
       .then(function () {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var getAll = dataStore.get(schemas.TestSchema.collectionName, {
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let getAll = dataStore.get(schemas.TestSchema.collectionName, {
           limit: 1,
           offset: 1,
           sort: {
@@ -647,19 +663,19 @@ describe('models.DataStore', function () {
     });
 
     it ('gets by ID (array)', function () {
-      var modelData = {
+      let modelData = {
         name: 'testName'
       };
 
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
-          var model = new Schema(modelData);
+          let model = new Schema(modelData);
           model.save(function (err, result) {
             if (err) {
               throw err;
@@ -671,8 +687,8 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function (newInstance) {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var get = dataStore.get(schemas.TestSchema.collectionName, {
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let get = dataStore.get(schemas.TestSchema.collectionName, {
           criteria: {
             _id: newInstance._id
           }
@@ -689,19 +705,19 @@ describe('models.DataStore', function () {
     });
 
     it ('gets by ID (convenience method, single object)', function () {
-      var modelData = {
+      let modelData = {
         name: 'testName'
       };
 
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
-          var model = new Schema(modelData);
+          let model = new Schema(modelData);
           model.save(function (err, result) {
             if (err) {
               throw err;
@@ -713,8 +729,8 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function (newInstance) {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var getById = dataStore
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let getById = dataStore
           .getById(schemas.TestSchema.collectionName, newInstance._id)
           .then(function (result) {
             return result.name;
@@ -725,24 +741,24 @@ describe('models.DataStore', function () {
     });
 
     it ('populates a record', function () {
-      var modelData = {
+      let modelData = {
         name: 'Test Record'
       };
 
-      var testReferrerObject = {
+      let testReferrerObject = {
         name: 'Test Record Referrer'
       };
 
       // Insert the Test directly.
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
-          var model = new Schema(modelData);
+          let model = new Schema(modelData);
           model.save(function (err, result) {
             if (err) {
               throw err;
@@ -758,17 +774,17 @@ describe('models.DataStore', function () {
       // Insert the Test Referrer directly, and make it point to Test.
       .then(function (newInstance) {
         return new Promise(function (resolve, reject) {
-          var mongoose = require('mongoose');
-          var db = mongoose
+          let mongoose = require('mongoose');
+          let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
           db.on('open', function () {
-            var Schema = schemas.TestReferrerSchema.factory(db);
+            let Schema = schemas.TestReferrerSchema.factory(db);
 
             // Set the test to point to the new instance.
             testReferrerObject._test = newInstance._id;
 
-            var model = new Schema(testReferrerObject);
+            let model = new Schema(testReferrerObject);
             model.save(function (err, result) {
               if (err) {
                 throw err;
@@ -781,8 +797,8 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function () {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var get = dataStore.get(schemas.TestReferrerSchema.collectionName, {
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let get = dataStore.get(schemas.TestReferrerSchema.collectionName, {
           populate: '_test'
         });
 
@@ -810,28 +826,28 @@ describe('models.DataStore', function () {
     });
 
     it ('rejects when a non-existent ID is given', function () {
-      var ID = '56695059b5333b7d7573ffbf';
-      var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-      var del = dataStore.delete(schemas.TestSchema.collectionName, ID);
+      let ID = '56695059b5333b7d7573ffbf';
+      let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+      let del = dataStore.delete(schemas.TestSchema.collectionName, ID);
       return expect(del).to.eventually.rejectedWith(
         Error, 'Unable to find object with ID: ' + ID
       );
     });
 
     it ('deletes an object', function () {
-      var modelData = {
+      let modelData = {
         name: 'testName'
       };
 
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
-          var model = new Schema(modelData);
+          let model = new Schema(modelData);
           model.save(function (err, result) {
             if (err) {
               throw err;
@@ -843,8 +859,8 @@ describe('models.DataStore', function () {
           });
         });
       }).then(function (newInstance) {
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var deleteAndGet =
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let deleteAndGet =
           dataStore
             .delete(schemas.TestSchema.collectionName, newInstance._id)
             .then(function () {
@@ -872,11 +888,11 @@ describe('models.DataStore', function () {
     });
 
     it ('aggregates data', function () {
-      var modelData = [];
-      var size = 100;
+      let modelData = [];
+      let size = 100;
 
       // Create 100 records.
-      for (var i = 0; i < size; i++) {
+      for (let i = 0; i < size; i++) {
         modelData.push({
           name: ('record' + i),
           createdAt: new Date(2015, (i % 12), 1),
@@ -885,12 +901,12 @@ describe('models.DataStore', function () {
       }
 
       return new Promise(function (resolve, reject) {
-        var mongoose = require('mongoose');
-        var db = mongoose
+        let mongoose = require('mongoose');
+        let db = mongoose
                 .createConnection('mongodb://localhost/' + STORE_NAME);
 
         db.on('open', function () {
-          var Schema = schemas.TestSchema.factory(db);
+          let Schema = schemas.TestSchema.factory(db);
 
           Schema.create(modelData, function (err, result) {
             if (err) {
@@ -904,7 +920,7 @@ describe('models.DataStore', function () {
         });
       })
       .then(function () {
-        var steps = [{
+        let steps = [{
 
           $group: {
             _id: 1,
@@ -915,8 +931,8 @@ describe('models.DataStore', function () {
 
         }];
 
-        var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-        var aggregation = dataStore.aggregate(
+        let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+        let aggregation = dataStore.aggregate(
             schemas.TestSchema.collectionName, steps);
 
         return Promise.all([

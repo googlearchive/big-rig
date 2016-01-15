@@ -1,17 +1,33 @@
+/**
+ * Copyright 2015 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 'use strict';
 
 /* global describe, it */
 
-var chai = require('chai');
-var expect = chai.expect;
-var chaiAsPromised = require('chai-as-promised');
+let chai = require('chai');
+let expect = chai.expect;
+let chaiAsPromised = require('chai-as-promised');
 
 // DataStore stuff.
-var DataStore = require('../src/models/datastore');
-var projectSchema = require('../src/models/schemas/project-schema');
+let DataStore = require('../src/models/datastore');
+let projectSchema = require('../src/models/schemas/project-schema');
 
-var TEST_SCHEMA_PATH = '/src/models/schemas/';
-var STORE_NAME = 'ProjectSchemaTestStore';
+let TEST_SCHEMA_PATH = '/src/models/schemas/';
+let STORE_NAME = 'ProjectSchemaTestStore';
 
 chai.use(chaiAsPromised);
 
@@ -27,10 +43,10 @@ describe('Test Project Schema', () => {
   });
 
   it ('reject if no data is defined', function () {
-    var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-    var modelData = {
+    let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+    let modelData = {
     };
-    var put = dataStore.put(projectSchema.collectionName, modelData);
+    let put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
       Error, 'ProjectSchema validation failed'
@@ -38,11 +54,11 @@ describe('Test Project Schema', () => {
   });
 
   it ('reject if name is empty', function () {
-    var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-    var modelData = {
+    let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+    let modelData = {
       name: ''
     };
-    var put = dataStore.put(projectSchema.collectionName, modelData);
+    let put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
       Error, 'ProjectSchema validation failed'
@@ -50,11 +66,11 @@ describe('Test Project Schema', () => {
   });
 
   it ('reject if name is null', function () {
-    var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-    var modelData = {
+    let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+    let modelData = {
       name: null
     };
-    var put = dataStore.put(projectSchema.collectionName, modelData);
+    let put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
       Error, 'ProjectSchema validation failed'
@@ -62,11 +78,11 @@ describe('Test Project Schema', () => {
   });
 
   it ('reject if name is undefined', function () {
-    var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-    var modelData = {
+    let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+    let modelData = {
       name: undefined
     };
-    var put = dataStore.put(projectSchema.collectionName, modelData);
+    let put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.rejectedWith(
       Error, 'ProjectSchema validation failed'
@@ -74,11 +90,11 @@ describe('Test Project Schema', () => {
   });
 
   it ('should save project', function () {
-    var dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
-    var modelData = {
+    let dataStore = new DataStore(STORE_NAME, TEST_SCHEMA_PATH);
+    let modelData = {
       name: 'Valid Project Name'
     };
-    var put = dataStore.put(projectSchema.collectionName, modelData);
+    let put = dataStore.put(projectSchema.collectionName, modelData);
 
     return expect(put).to.eventually.be.fulfilled;
   });

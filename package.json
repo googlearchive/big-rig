@@ -25,7 +25,7 @@
   "bugs": "https://github.com/googlechrome/big-rig/issues",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "eslint --config ./.eslintrc src/**/*.js && mocha"
+    "test": "eslint --config ./.eslintrc ./**/*.js && mocha"
   },
   "bin": {
     "big-rig": "app.js"
