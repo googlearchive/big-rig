@@ -16,9 +16,9 @@
 
 'use strict';
 
-var path = require('path');
-var fs = require('fs');
-var mkdirp = require('mkdirp');
+let path = require('path');
+let fs = require('fs');
+let mkdirp = require('mkdirp');
 
 /**
  * Preferences is a simple class to read and write key, value pairs

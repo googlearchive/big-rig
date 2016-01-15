@@ -44,7 +44,8 @@
         "no-extra-strict": 0,
         "no-reserved-keys": 0,
         "no-space-before-semi": 0,
-        "no-wrap-func": 0
+        "no-wrap-func": 0,
+        "no-var": 2
     },
     "env": {
         "es6": true,
