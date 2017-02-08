@@ -24,7 +24,7 @@
   "author": "Paul Lewis",
   "license": "Apache-2.0",
   "dependencies": {
-    "selenium-webdriver": "^2.48.0",
+    "selenium-webdriver": "~2.48.0",
     "yargs": "^3.29.0"
   },
   "repository": {
